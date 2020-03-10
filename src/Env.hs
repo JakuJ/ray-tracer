@@ -12,13 +12,14 @@ data Camera = Camera {
 }
 makeLenses ''Camera
 
-getLookAt :: Camera -> M44 Float
-getLookAt (Camera p f u) = lookAt f p u
-
 data Env = Env {
-    _camera :: Camera
+    _imageWidth  :: Int,
+    _imageHeight :: Int,
+    _camera      :: Camera
 }
 makeLenses ''Env
 
 defaultEnv :: Env
-defaultEnv = Env $ Camera (V3 0 0 0) (V3 0 0 (-1)) (V3 0 1 0)
+defaultEnv = Env 800 600 camera
+    where
+        camera = Camera (V3 0 0 0) (V3 0 0 (-1)) (V3 0 1 0)

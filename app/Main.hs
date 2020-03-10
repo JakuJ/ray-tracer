@@ -9,4 +9,4 @@ scene :: Scene
 scene = [Sphere (V3 0 2 (-5)) 2, Sphere (V3 3 0 (-5)) 0.5]
 
 main :: IO ()
-main = saveImage "obraz.bmp" $ render defaultEnv scene
+main = saveImage defaultEnv "obraz.bmp" $ render defaultEnv scene
