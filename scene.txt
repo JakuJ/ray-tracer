@@ -1,0 +1,3 @@
+Sphere {_center = V3 10 0 (-17), _radius = 10}
+Sphere {_center = V3 0 8 (-7), _radius = 3}
+Sphere {_center = V3 0 0 (-2), _radius = 1}

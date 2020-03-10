@@ -1,20 +1,15 @@
-{-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Raytracer where
 
 import           Control.Lens  ((^.))
 import           Data.Function (on)
+import           Data.List     (minimum)
 import           Data.Maybe    (listToMaybe, mapMaybe)
 import           Env
 import           Linear        hiding (trace)
 import           Output
-
-data Shape = Sphere {_center :: V3 Float, _radius :: Float}
-
-type Scene = [Shape]
-
-data Ray = Ray {_pos :: V3 Float, _dir :: V3 Float}
+import           Shapes
 
 castDiv :: Integral a => a -> a -> Float
 castDiv = (/) `on` fromIntegral
@@ -35,23 +30,14 @@ render env scene = pixelsToImage $ map (trace scene) rays
     where
         rays = makeRays env
 
+minMaybe :: Ord a => [a] -> Maybe a
+minMaybe lst = if null lst then Nothing else Just $ minimum lst
+
 trace :: Scene -> Ray -> Pixel
-trace scene ray = color $ listToMaybe $ collisions ray scene
+trace scene ray = color $ minMaybe $ collisions ray scene
     where
         color Nothing  = V4 0 0 0 255
         color (Just d) = let k = floor (255 * exp (- 0.1 * d)) in V4 k k k 255
 
 collisions :: Ray -> Scene -> [Float]
 collisions ray = mapMaybe (collide ray)
-
-collide :: Ray -> Shape -> Maybe Float
-collide ray = \case
-    Sphere c r -> sphIntersect ray c r
-
-sphIntersect :: Ray -> V3 Float -> Float -> Maybe Float
-sphIntersect (Ray ro rd) ce ra = if h < 0 then Nothing else Just $ -b - sqrt h
-    where
-        oc = ro - ce
-        b = dot oc rd
-        c = dot oc oc - ra * ra
-        h = b * b - c
