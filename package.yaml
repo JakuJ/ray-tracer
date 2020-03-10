@@ -25,8 +25,14 @@ dependencies:
 - bmp
 - linear
 - lens
+- parallel
+- random
 library:
   source-dirs: src
+
+ghc-options:
+- -eventlog
+- -O2
 
 executables:
   Raytracer-exe:

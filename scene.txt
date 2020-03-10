@@ -1,3 +1,12 @@
 Sphere {_center = V3 10 0 (-17), _radius = 10}
 Sphere {_center = V3 0 8 (-7), _radius = 3}
-Sphere {_center = V3 0 0 (-2), _radius = 1}
+Sphere {_center = V3 0 0 (-3), _radius = 1}
+Sphere {_center = V3 1 0 (-3), _radius = 1}
+Sphere {_center = V3 2 0 (-3), _radius = 1}
+Sphere {_center = V3 3 0 (-3), _radius = 1}
+Sphere {_center = V3 4 0 (-3), _radius = 1}
+Sphere {_center = V3 5 0 (-3), _radius = 1}
+Sphere {_center = V3 6 0 (-3), _radius = 1}
+Sphere {_center = V3 7 0 (-3), _radius = 1}
+Sphere {_center = V3 8 0 (-3), _radius = 1}
+Sphere {_center = V3 9 0 (-3), _radius = 1}

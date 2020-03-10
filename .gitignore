@@ -1,4 +1,6 @@
 .stack-work/
 Raytracer.cabal
 *.bmp
+*.eventlog
+scene.txt
 *~
