@@ -24,7 +24,7 @@ makeRays (Env width height camera) = do
     x <- [0 .. width - 1]
     let nx = 2 * (x `castDiv` width) - 1
     let ny = 2 * (y `castDiv` height) - 1
-    return $ Ray (camera ^. position) ((normalize . vector) (V3 (aspect * nx) ny (-1)))
+    return $ Ray (camera ^. position) (normalize (V4 (aspect * nx) ny (-1) 0))
     where
         aspect = width `castDiv` height
 
@@ -44,13 +44,16 @@ minMaybe lst = if null lst then Nothing else Just $ minimum lst
 -- pipeline
 
 trace :: Ray -> Scene -> Color
-trace ray = fromMaybe zero . traceRec 1 ray
+trace ray = fromMaybe zero . traceRec 4 ray
 
 unMaybe (_, Nothing) = Nothing
 unMaybe (a, Just p)  = Just (a, p)
 
 blend :: Color -> Color -> Color
-blend c1 c2 = point (((c1 ^+^ c2) ^/ 2) ^. _xyz)
+blend = lerp 0.5
+
+reflect :: V4 Float -> V4 Float -> V4 Float
+reflect d n = d ^-^ (n ^* (2 * dot d n))
 
 traceRec :: Int -> Ray -> Scene -> Maybe Color
 traceRec 0 _ _ = Nothing
@@ -59,4 +62,7 @@ traceRec n ray@(Ray ro rd) scene = do
     (Collision _ shape dist) <- listToMaybe $ sortBy (comparing _distance) intersections
     let point = ro ^+^ rd ^* dist
     let color = colorAt shape point
-    return color
+    let normal = normalAt shape point
+    return $ case traceRec (n - 1) (Ray (point ^+^ (normal ^* 0.01)) normal) scene of
+        Nothing  -> color
+        Just clr -> blend color clr

@@ -21,6 +21,6 @@ data Env = Env {
 makeLenses ''Env
 
 defaultEnv :: Env
-defaultEnv = Env 800 600 camera
+defaultEnv = Env 1600 1200 camera
     where
-        camera = Camera (V4 0 0 8 1) (V4 0 0 (-1) 0) (V4 0 1 0 0)
+        camera = Camera (V4 0 4 5 1) (V4 0 0 (-1) 0) (V4 0 1 0 0)

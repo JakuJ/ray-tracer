@@ -8,18 +8,20 @@ import           Raytracer     (render)
 import           Shapes        (Material (..), Scene, Shape (..))
 import           System.Random
 
-randomPoints2D :: [(Float, Float)]
-randomPoints2D = zip (randoms (mkStdGen 123)) (randoms (mkStdGen 456))
+randomPoints3D :: [(Float, Float, Float)]
+randomPoints3D = zip3 (randoms (mkStdGen 123)) (randoms (mkStdGen 456)) (randoms (mkStdGen 789))
 
-white, gray :: Material
-white = Material (V4 1 1 1 1) zero zero
-gray = Material (V4 0.2 0.2 0.2 1) zero zero
+white :: Material
+white = let w = V4 1 1 1 1 in Material w w w
 
 testScene :: Scene
-testScene = take 100 [Sphere (V4 (10 * x - 5) (10 * y - 5) 1 1) 0.5 white | (x, y) <- randomPoints2D]
+testScene = do
+  x <- [-4, 0, 4]
+  z <- [-6, -3, 0]
+  return $ Sphere (V4 x 1 z 1) 1 white
 
 main :: IO ()
 main = do
   -- scene <- parseScene "scene.txt"
-  let scene = Plane (V4 0 0 1 0) gray : testScene
+  let scene = Plane (V4 0 1 0 0) white : testScene
   saveImage defaultEnv "obraz.bmp" $ render defaultEnv scene
