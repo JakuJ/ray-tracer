@@ -11,11 +11,15 @@ import           Types
 data Ray = Ray {_pos :: Point, _dir :: Vector}
 
 class Traceable a where
-    colorAt :: a -> Ray -> Point -> Color
-    intPoint :: Ray -> a -> Maybe Point
-    intColor :: Ray -> a -> Maybe Color
-    intColor r t = colorAt t r <$> intPoint r t
-    {-# MINIMAL colorAt, intPoint #-}
+    colorAt :: a -> Point -> Color
+    collide :: Ray -> a -> Maybe (Collision a)
+    {-# MINIMAL colorAt, collide #-}
+
+data (Traceable a) => Collision a = Collision {
+    _ray      :: Ray,
+    _shape    :: a,
+    _distance :: Float
+}
 
 data Material = Material {
     _ambient  :: Color,
@@ -33,25 +37,19 @@ makeLenses ''Shape
 type Scene = [Shape]
 
 instance Traceable Shape where
-    intPoint ray Sphere{..} = sphIntersect ray _center _radius
-    intPoint ray Plane{..}  = planeIntersect ray _direction
-    colorAt shape (Ray ro _) point = attenuate (distance ro point) (shape ^. material . ambient)
+    collide = intersect
+    colorAt (Sphere c r m) point = (m ^. ambient) * (abs $ normalize (point ^-^ c) & _w .~ 1)
+    colorAt shape point = shape ^. material . ambient
 
-attenuate :: Float -> Color -> Color
-attenuate dist (V4 r g b a) = V4 r' g' b' a
-    where
-        k = exp (-0.8 * (dist - 3))
-        [r', g', b'] = map (floor . (*k) . fromIntegral) [r, g, b]
-
-sphIntersect :: Ray -> Point -> Float -> Maybe Point
-sphIntersect (Ray ro rd) ce ra = if h < 0 then Nothing else Just $ ro ^-^ rd ^* (b + sqrt h)
+intersect :: Ray -> Shape -> Maybe (Collision Shape)
+intersect ray@(Ray ro rd) shp@(Sphere ce ra _) = if h < 0 then Nothing else Just $ Collision ray shp dist
     where
         oc = ro - ce
         b = dot oc rd
         c = dot oc oc - ra * ra
         h = b * b - c
+        dist = -b - sqrt h
 
-planeIntersect :: Ray -> Point -> Maybe Point
-planeIntersect (Ray ro rd) p = if k < 0 then Nothing else Just $ ro ^+^ rd ^* k
+intersect ray@(Ray ro rd) shp@(Plane dir _) = if k < 0 then Nothing else Just $ Collision ray shp k
     where
-        k = - dot ro p / dot rd p
+        k = - dot ro dir / dot rd dir

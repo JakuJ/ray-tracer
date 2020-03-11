@@ -8,12 +8,12 @@ import           Data.ByteString (pack)
 import           Data.Word       (Word8)
 import           Env
 import           Linear          (V4 (..))
+import           Types
 
 type Image = [Word8]
-type Pixel = V4 Int
 
-pixelsToImage :: [Pixel] -> Image
-pixelsToImage = concatMap (\(V4 x y z w) -> map fromIntegral [x, y, z, w])
+pixelsToImage :: [Color] -> Image
+pixelsToImage = concatMap (\(V4 x y z w) -> map (floor . (* 255)) [x, y, z, w])
 
 saveImage :: Env -> String -> Image -> IO ()
 saveImage env filename img = do

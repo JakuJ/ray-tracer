@@ -5,8 +5,9 @@ module Raytracer where
 import           Control.Lens                ((^.))
 import           Control.Parallel.Strategies (parListChunk, rseq, withStrategy)
 import           Data.Function               (on)
-import           Data.List                   (minimum)
-import           Data.Maybe                  (listToMaybe, mapMaybe)
+import           Data.List                   (sortBy)
+import           Data.Maybe                  (fromMaybe, listToMaybe, mapMaybe)
+import           Data.Ord                    (comparing)
 import           Env
 import           Linear                      hiding (trace)
 import           Output
@@ -33,18 +34,29 @@ parallelize env f = withStrategy (parListChunk chunkSize rseq) . map f
         chunkSize = env ^. imageWidth * env ^. imageHeight `div` 40
 
 render :: Env -> Scene -> Image
-render env scene = pixelsToImage $ parallelize env (trace scene) rays
+render env scene = pixelsToImage $ parallelize env (flip trace scene) rays
     where
         rays = makeRays env
 
 minMaybe :: Ord a => [a] -> Maybe a
 minMaybe lst = if null lst then Nothing else Just $ minimum lst
 
-combine :: [Color] -> Color
-combine lst = if null lst then zero else maximum lst
+-- pipeline
 
-trace :: Scene -> Ray -> Pixel
-trace scene ray = combine $ collisions ray scene
+trace :: Ray -> Scene -> Color
+trace ray = fromMaybe zero . traceRec 1 ray
 
-collisions :: Ray -> Scene -> [Color]
-collisions ray = mapMaybe (intColor ray)
+unMaybe (_, Nothing) = Nothing
+unMaybe (a, Just p)  = Just (a, p)
+
+blend :: Color -> Color -> Color
+blend c1 c2 = point (((c1 ^+^ c2) ^/ 2) ^. _xyz)
+
+traceRec :: Int -> Ray -> Scene -> Maybe Color
+traceRec 0 _ _ = Nothing
+traceRec n ray@(Ray ro rd) scene = do
+    let intersections = mapMaybe (collide ray) scene
+    (Collision _ shape dist) <- listToMaybe $ sortBy (comparing _distance) intersections
+    let point = ro ^+^ rd ^* dist
+    let color = colorAt shape point
+    return color

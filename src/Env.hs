@@ -23,4 +23,4 @@ makeLenses ''Env
 defaultEnv :: Env
 defaultEnv = Env 800 600 camera
     where
-        camera = Camera (V4 0 2 0 1) (V4 0 0 (-1) 0) (V4 0 1 0 0)
+        camera = Camera (V4 0 0 8 1) (V4 0 0 (-1) 0) (V4 0 1 0 0)
