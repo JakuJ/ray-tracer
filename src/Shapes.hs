@@ -1,37 +1,57 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase      #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 
-module Shapes (
-    collide,
-    Ray (..),
-    Scene,
-    Shape(..)
-) where
+module Shapes where
 
-import           Linear (V3 (..), dot)
+import           Control.Lens
+import           Linear
+import           Types
+
+data Ray = Ray {_pos :: Point, _dir :: Vector}
+
+class Traceable a where
+    colorAt :: a -> Ray -> Point -> Color
+    intPoint :: Ray -> a -> Maybe Point
+    intColor :: Ray -> a -> Maybe Color
+    intColor r t = colorAt t r <$> intPoint r t
+    {-# MINIMAL colorAt, intPoint #-}
+
+data Material = Material {
+    _ambient  :: Color,
+    _diffuse  :: Color,
+    _specular :: Color
+} deriving (Show, Read)
+makeLenses ''Material
+
+data Shape
+    = Sphere {_center :: Point, _radius :: Float, _material :: Material}
+    | Plane {_direction :: Vector, _material :: Material}
+        deriving (Show, Read)
+makeLenses ''Shape
 
 type Scene = [Shape]
 
-data Ray = Ray {_pos :: V3 Float, _dir :: V3 Float}
+instance Traceable Shape where
+    intPoint ray Sphere{..} = sphIntersect ray _center _radius
+    intPoint ray Plane{..}  = planeIntersect ray _direction
+    colorAt shape (Ray ro _) point = attenuate (distance ro point) (shape ^. material . ambient)
 
-data Shape
-    = Sphere {_center :: V3 Float, _radius :: Float}
-    | Plane {_direction :: V3 Float}
-        deriving (Show, Read)
+attenuate :: Float -> Color -> Color
+attenuate dist (V4 r g b a) = V4 r' g' b' a
+    where
+        k = exp (-0.8 * (dist - 3))
+        [r', g', b'] = map (floor . (*k) . fromIntegral) [r, g, b]
 
-collide :: Ray -> Shape -> Maybe Float
-collide ray = \case
-    Sphere c r -> sphIntersect ray c r
-    Plane d -> planeIntersect ray d
-
-sphIntersect :: Ray -> V3 Float -> Float -> Maybe Float
-sphIntersect (Ray ro rd) ce ra = if h < 0 then Nothing else Just $ -b - sqrt h
+sphIntersect :: Ray -> Point -> Float -> Maybe Point
+sphIntersect (Ray ro rd) ce ra = if h < 0 then Nothing else Just $ ro ^-^ rd ^* (b + sqrt h)
     where
         oc = ro - ce
         b = dot oc rd
         c = dot oc oc - ra * ra
         h = b * b - c
 
-planeIntersect :: Ray -> V3 Float -> Maybe Float
-planeIntersect (Ray ro rd) p = if k < 0 then Nothing else Just k
+planeIntersect :: Ray -> Point -> Maybe Point
+planeIntersect (Ray ro rd) p = if k < 0 then Nothing else Just $ ro ^+^ rd ^* k
     where
         k = - dot ro p / dot rd p
