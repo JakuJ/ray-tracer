@@ -2,7 +2,7 @@ module Parser (
     parseScene
 ) where
 
-import           Shapes (Scene)
+import           Shapes (Shape)
 
-parseScene :: FilePath -> IO Scene
+parseScene :: FilePath -> IO [Shape]
 parseScene = fmap (map read . lines) . readFile

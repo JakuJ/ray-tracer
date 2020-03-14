@@ -6,28 +6,12 @@ module Shapes where
 
 import           Control.Lens
 import           Linear
-import           Types
 
-data Ray = Ray {_pos :: Point, _dir :: Vector}
+import           Materials    (Color, Material, color)
+import           Ray
 
-class Traceable a where
-    colorAt :: a -> Point -> Color
-    normalAt :: a -> Point -> Vector
-    collide :: Ray -> a -> Maybe (Collision a)
-    {-# MINIMAL colorAt, normalAt, collide #-}
-
-data (Traceable a) => Collision a = Collision {
-    _ray      :: Ray,
-    _shape    :: a,
-    _distance :: Float
-}
-
-data Material = Material {
-    _ambient  :: Color,
-    _diffuse  :: Color,
-    _specular :: Color
-} deriving (Show, Read)
-makeLenses ''Material
+type Point = V3 Float
+type Vector = V3 Float
 
 data Shape
     = Sphere {_center :: Point, _radius :: Float, _material :: Material}
@@ -35,26 +19,40 @@ data Shape
         deriving (Show, Read)
 makeLenses ''Shape
 
-type Scene = [Shape]
+data Collision = Collision {
+    _shape    :: Shape,
+    _distance :: Float,
+    _point    :: Point,
+    _normal   :: Vector
+}
 
-instance Traceable Shape where
-    collide ray shp = Collision ray shp <$> intersect ray shp
-    normalAt (Sphere c _ _) point = normalize $ point ^-^ c
-    normalAt (Plane d _) _ = d
-    colorAt (Sphere c r m) point = (m ^. ambient) * (abs $ normalize (point ^-^ c) & _w .~ 1)
-    colorAt (Plane _ m) (V4 x y z _)
-        | even (floor x) /= even (floor z) = (m ^. ambient) * V4 0.2 0.2 0.2 1
-        | otherwise = (m ^. ambient) * V4 0.8 0.8 0.8 1
+normalAt :: Shape -> Point -> Vector
+normalAt (Sphere c _ _) point = normalize $ point ^-^ c
+normalAt (Plane d _) point = if dot d (normalize point) > 0 then d else negate d
+
+colorAt :: Shape -> Point -> Color
+colorAt (Sphere _ _ m) _ = m ^. color
+colorAt (Plane _ m) (V3 x y z)
+    | even (floor (5 * x)) /= even (floor (5 * y)) = (m ^. color) * V4 0 0 0 1
+    | otherwise = (m ^. color) * V4 1 1 1 1
+
+collide :: Ray -> Shape -> Maybe Collision
+collide ray@(Ray ro rd) shp = do
+    dist <- intersect ray shp
+    let point = ro ^+^ rd ^* dist
+    return $ Collision shp dist point $ normalAt shp point
 
 intersect :: Ray -> Shape -> Maybe Float
-intersect ray@(Ray ro rd) shp@(Sphere ce ra _) = if h < 0 || dist < 0 then Nothing else Just dist
+intersect ray@(Ray ro rd) shp@(Sphere ce ra _) = if h < 0 then Nothing else closer
     where
         oc = ro - ce
         b = dot oc rd
         c = dot oc oc - ra * ra
         h = b * b - c
-        dist = -b - sqrt h
+        near = -b - sqrt h
+        far = -b + sqrt h
+        closer = let val = min far near in if val < 0 then Nothing else Just val
 
-intersect ray@(Ray ro rd) shp@(Plane dir _) = if k < 0 || k > 20 then Nothing else Just k
+intersect ray@(Ray ro rd) shp@(Plane dir _) = if k < 0 then Nothing else Just k
     where
         k = - dot ro dir / dot rd dir

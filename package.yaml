@@ -27,6 +27,7 @@ dependencies:
 - lens
 - parallel
 - random
+
 library:
   source-dirs: src
 
