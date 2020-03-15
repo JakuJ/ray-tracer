@@ -2,7 +2,7 @@
 {-# LANGUAGE DefaultSignatures         #-}
 {-# LANGUAGE ExistentialQuantification #-}
 
-module Geometry.Primitives (
+module Object.Primitive (
   Primitive,
   distanceTo, normalAt, hit,
   -- * Existential qualifiers
@@ -12,8 +12,8 @@ module Geometry.Primitives (
 ) where
 
 import           Common
-import           Geometry.Materials
-import           Tracing.Ray        (Ray (..))
+import           Object.Material
+import           Tracing.Ray      (Ray (..))
 
 import           Linear
 
@@ -28,7 +28,7 @@ class Primitive a where
   -- |Surface normal at a given point in space.
   normalAt :: Point -> a -> Direction
   -- |Collision point, normal vector and material info. Assumes intersection.
-  hit :: Ray -> Float -> a -> (Normal, Material) 
+  hit :: Ray -> Float -> a -> (Normal, Material)
 
   default hit :: HasMaterial a => Ray -> Float -> a -> (Normal, Material)
   hit (Ray ro rd) dist p = ((point, dir), material p)
@@ -89,4 +89,4 @@ instance Primitive Plane where
     where
       k = - dot ro dir / dot rd dir
 
-  normalAt point (Plane dir _) = if dot point dir > 0 then dir else negate dir
+  normalAt _ (Plane dir _) = dir

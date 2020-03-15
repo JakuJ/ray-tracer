@@ -1,4 +1,4 @@
-module Geometry.Materials (
+module Object.Material (
   -- * Data types
   Material(..), MaterialType(..),
   -- * Blending functions
