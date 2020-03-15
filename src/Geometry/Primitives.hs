@@ -1,7 +1,15 @@
 
 {-# LANGUAGE DefaultSignatures         #-}
 {-# LANGUAGE ExistentialQuantification #-}
-module Geometry.Primitives where
+
+module Geometry.Primitives (
+  Primitive,
+  distanceTo, normalAt, hit,
+  -- * Existential qualifiers
+  Shape,
+  -- ** Smart constructors
+  sphere, plane
+) where
 
 import           Common
 import           Geometry.Materials
@@ -9,13 +17,18 @@ import           Tracing.Ray        (Ray (..))
 
 import           Linear
 
+-- |Represents types that have a 'Material' associated with them.
 class HasMaterial a where
-  material :: a -> Material
+  material :: a -> Material -- ^Extract the associated 'Material'.
 
-class Primitive_ a where
+-- |Represents types that can be intersected by rays
+class Primitive a where
+  -- |'Just' distance to the primitive if the ray intersects it, otherwise 'Nothing'.
   distanceTo :: Ray -> a -> Maybe Float
+  -- |Surface normal at a given point in space.
   normalAt :: Point -> a -> Direction
-  hit :: Ray -> Float -> a -> (Normal, Material)
+  -- |Collision point, normal vector and material info. Assumes intersection.
+  hit :: Ray -> Float -> a -> (Normal, Material) 
 
   default hit :: HasMaterial a => Ray -> Float -> a -> (Normal, Material)
   hit (Ray ro rd) dist p = ((point, dir), material p)
@@ -23,14 +36,15 @@ class Primitive_ a where
       point = ro + rd ^* dist
       dir = normalAt point p
 
-data Primitive = forall a. Primitive_ a => Primitive a
+-- |Existential qualifier for the 'Primitive' class.
+-- Used to achieve dynamic dispatch known from OOP languages.
+-- Makes representing the scene as a list of 'Primitive' class objects possible.
+data Shape = forall a. Primitive a => Shape a
 
-instance Primitive_ Primitive where
-  distanceTo ray (Primitive a) = distanceTo ray a
-  normalAt p (Primitive a) = normalAt p a
-  hit ray f (Primitive a) = hit ray f a
-
--- Implementations
+instance Primitive Shape where
+  distanceTo ray (Shape a) = distanceTo ray a
+  normalAt p (Shape a) = normalAt p a
+  hit ray f (Shape a) = hit ray f a
 
 data Sphere = Sphere
   { _spherePosition :: {-# UNPACK #-} !Point
@@ -38,13 +52,14 @@ data Sphere = Sphere
   , _sphereMaterial :: {-# UNPACK #-} !Material
   }
 
-sphere :: Point -> Float -> Material -> Primitive
-sphere a b c = Primitive $ Sphere a b c
+-- |A smart constructor upcasting the 'Sphere' type to 'Shape'.
+sphere :: Point -> Float -> Material -> Shape
+sphere a b c = Shape $ Sphere a b c
 
 instance HasMaterial Sphere where
   material = _sphereMaterial
 
-instance Primitive_ Sphere where
+instance Primitive Sphere where
   distanceTo (Ray ro rd) (Sphere ce ra _) = if h < 0 then Nothing else closer
     where
       oc = ro - ce
@@ -62,13 +77,14 @@ data Plane = Plane
   , _planeMaterial  :: {-# UNPACK #-} !Material
   }
 
-plane :: Direction -> Material -> Primitive
-plane a b = Primitive $ Plane a b
+-- |A smart constructor upcasting the 'Plane' type to 'Shape'.
+plane :: Direction -> Material -> Shape
+plane a b = Shape $ Plane a b
 
 instance HasMaterial Plane where
   material = _planeMaterial
 
-instance Primitive_ Plane where
+instance Primitive Plane where
   distanceTo (Ray ro rd) (Plane dir _) = if k < 0 || k > 20 then Nothing else Just k
     where
       k = - dot ro dir / dot rd dir

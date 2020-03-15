@@ -20,7 +20,7 @@ parallelize env f = withStrategy (parListChunk chunkSize rseq) . map f
     where
         chunkSize = env ^. imageWidth * env ^. imageHeight `div` 40
 
-render :: Primitive_ a => Env -> [a] -> Image
+render :: Primitive a => Env -> [a] -> Image
 render env scene = pixelsToImage $ parallelize env (flip trace scene) rays
     where
         rays = makeRays env
@@ -38,7 +38,7 @@ refract index i n = if k < 0 then Nothing else Just $ (eta *^ i) ^+^ (n' ^* (eta
 offset :: Ray -> Ray
 offset (Ray ro rd) = Ray (ro + rd ^* 0.01) rd
 
-tryHit :: Primitive_ a => Ray -> [a] -> Maybe (Normal, Material)
+tryHit :: Primitive a => Ray -> [a] -> Maybe (Normal, Material)
 tryHit ray primitives = do
   (p, dist) <- listToMaybe $ sortOn snd $ filterZipMaybe (distanceTo ray) primitives
   return $ hit ray dist p
@@ -53,10 +53,10 @@ spawnRays (Ray ro rd) ((point, normal), (Material col mtype)) = case mtype of
       Nothing        -> []
       Just refracted -> [(offset (Ray point refracted), alphaBlend)]
 
-trace :: Primitive_ a => Ray -> [a] -> Color
+trace :: Primitive a => Ray -> [a] -> Color
 trace ray = fromMaybe zero . traceRec 16 ray
 
-traceRec :: Primitive_ a => Int -> Ray -> [a] -> Maybe Color
+traceRec :: Primitive a => Int -> Ray -> [a] -> Maybe Color
 traceRec 0 _ _ = Nothing
 traceRec n ray scene = do
   c@(_, Material color _) <- tryHit ray scene

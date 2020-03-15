@@ -1,14 +1,13 @@
 name:                Raytracer
 version:             0.1.0.0
-github:              "githubuser/Raytracer"
+github:              "JakuJ/Raytracer"
 license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2020 Author name here"
+author:              "Jakub Janaszkiewicz"
+maintainer:          "janaszkiewicz.jakub@gmail.com"
+copyright:           "2020 Jakub Janaszkiewicz"
 
 extra-source-files:
 - README.md
-- ChangeLog.md
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
@@ -26,15 +25,13 @@ dependencies:
 - linear
 - lens
 - parallel
-# - accelerate
-# - linear-accelerate
 
 library:
   source-dirs: src
 
 ghc-options:
 - -eventlog
-- -O2
+- -O3
 
 executables:
   Raytracer-exe:
