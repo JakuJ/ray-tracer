@@ -26,7 +26,8 @@ dependencies:
 - linear
 - lens
 - parallel
-- random
+# - accelerate
+# - linear-accelerate
 
 library:
   source-dirs: src

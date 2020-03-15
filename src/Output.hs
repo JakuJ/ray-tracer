@@ -1,13 +1,13 @@
 module Output where
 
+import           Common          (Color)
+import           Env
+
 import           Codec.BMP
 import           Control.Lens    ((^.))
 import           Data.ByteString (pack)
 import           Data.Word       (Word8)
-import           Env
 import           Linear          (V4 (..))
-
-import           Materials       (Color)
 
 type Image = [Word8]
 

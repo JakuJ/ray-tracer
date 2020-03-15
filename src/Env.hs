@@ -24,4 +24,4 @@ makeLenses ''Env
 
 -- |Default testing environment
 defaultEnv :: Env
-defaultEnv = Env 1024 1024 $ Camera (V3 0 4 8) (V3 0 0 (-1)) (V3 0 1 0) 60
+defaultEnv = Env 1000 1000 $ Camera (V3 1 3 6) (V3 0 0 (-1)) (V3 0 1 0) 60
