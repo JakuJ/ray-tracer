@@ -52,8 +52,9 @@ trace scene = fromMaybe zero . traceRec 16 scene
 traceRec :: Primitive a => Int -> [a] -> Ray -> Maybe Color
 traceRec 0 _ _ = Nothing
 traceRec n scene ray@(Ray ro rd) = do
-  ((point, normal), Material color mtype) <- tryHit ray scene
+  ((point, normal), Material colorAt mtype) <- tryHit ray scene
   let
+    color = colorAt point
     incoming = fromMaybe background $ case mtype of
       Diffuse -> Nothing
       Reflection f -> if f == 0

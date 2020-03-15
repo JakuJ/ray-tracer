@@ -7,7 +7,8 @@ module Geometry.Materials (
   background
 ) where
 
-import           Common       (Color)
+import           Common       (Color, Point)
+
 import           Control.Lens ((^.))
 import           Linear
 
@@ -21,7 +22,7 @@ data MaterialType
   -- ^Transparent material characterized by a refraction index.
 
 data Material = Material {
-  _materialColor :: {-# UNPACK #-} !Color,
+  _materialColor :: Point -> Color,
   -- ^Material color as a normalized RGBA vector.
   -- The alpha channel is used when blending if the material type is 'Refraction'.
   _materialType  :: MaterialType
