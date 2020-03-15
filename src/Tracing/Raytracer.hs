@@ -21,44 +21,49 @@ parallelize env f = withStrategy (parListChunk chunkSize rseq) . map f
         chunkSize = env ^. imageWidth * env ^. imageHeight `div` 40
 
 render :: Primitive a => Env -> [a] -> Image
-render env scene = pixelsToImage $ parallelize env (flip trace scene) rays
+render env scene = pixelsToImage $ parallelize env (trace scene) rays
     where
         rays = makeRays env
 
 reflect :: Direction -> Direction -> Direction
-reflect d n = d ^-^ (n ^* (2 * dot d n))
+reflect d n = d ^-^ (n ^* (2 * d `dot` n))
 
 refract :: Float -> Direction -> Direction -> Maybe Direction
 refract index i n = if k < 0 then Nothing else Just $ (eta *^ i) ^+^ (n' ^* (eta * cosi' - sqrt k))
     where
-        cosi = dot (normalize i) n
+        cosi = normalize i `dot` n
         (cosi', eta, n') = if cosi < 0 then (-cosi, 1 / index, n) else (cosi, index, negate n)
         k = 1 - eta * eta * (1 - cosi' * cosi')
 
 offset :: Ray -> Ray
-offset (Ray ro rd) = Ray (ro + rd ^* 0.01) rd
+offset (Ray ro rd) = Ray (ro + rd ^* 0.0001) rd
+
+clamp :: Color -> Color
+clamp = liftI2 min (V4 1 1 1 1) . liftI2 max zero
 
 tryHit :: Primitive a => Ray -> [a] -> Maybe (Normal, Material)
 tryHit ray primitives = do
   (p, dist) <- listToMaybe $ sortOn snd $ filterZipMaybe (distanceTo ray) primitives
   return $ hit ray dist p
 
-spawnRays :: Ray -> (Normal, Material) -> [(Ray, (Color -> Maybe Color -> Color))]
-spawnRays (Ray ro rd) ((point, normal), (Material col mtype)) = case mtype of
-  Diffuse -> []
-  Reflection f -> if f == 0 then []
-    else let reflected = reflect rd normal in [(offset (Ray point reflected), blend (1 - f))]
-  Refraction ix -> if col ^. _w == 1 then []
-    else case refract ix rd normal of
-      Nothing        -> []
-      Just refracted -> [(offset (Ray point refracted), alphaBlend)]
+trace :: Primitive a => [a] -> Ray -> Color
+trace scene = fromMaybe zero . traceRec 16 scene
 
-trace :: Primitive a => Ray -> [a] -> Color
-trace ray = fromMaybe zero . traceRec 16 ray
-
-traceRec :: Primitive a => Int -> Ray -> [a] -> Maybe Color
+traceRec :: Primitive a => Int -> [a] -> Ray -> Maybe Color
 traceRec 0 _ _ = Nothing
-traceRec n ray scene = do
-  c@(_, Material color _) <- tryHit ray scene
-  let other = spawnRays ray c
-  return $ foldl (\acc (ray, f) -> f acc (traceRec (n - 1) ray scene)) color other
+traceRec n scene ray@(Ray ro rd) = do
+  ((point, normal), Material color mtype) <- tryHit ray scene
+  let
+    incoming = fromMaybe background $ case mtype of
+      Diffuse -> Nothing
+      Reflection f -> if f == 0
+        then Nothing
+        else traceRec (n - 1) scene $ offset $ Ray point $ reflect rd normal
+      Refraction ix -> if color ^. _w == 1
+        then Nothing
+        else traceRec (n - 1) scene . offset . Ray point =<< refract ix rd normal
+    light = V4 1 1 1 1
+    in return . clamp $ case mtype of
+      Diffuse -> light * color
+      Reflection f -> color * (light ^* (1 - f) + incoming ^* f)
+      Refraction _ -> alphaBlend color incoming

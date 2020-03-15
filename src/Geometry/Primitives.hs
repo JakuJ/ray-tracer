@@ -85,7 +85,7 @@ instance HasMaterial Plane where
   material = _planeMaterial
 
 instance Primitive Plane where
-  distanceTo (Ray ro rd) (Plane dir _) = if k < 0 || k > 20 then Nothing else Just k
+  distanceTo (Ray ro rd) (Plane dir _) = if k < 0 then Nothing else Just k
     where
       k = - dot ro dir / dot rd dir
 
