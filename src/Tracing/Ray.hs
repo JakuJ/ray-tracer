@@ -26,7 +26,7 @@ toRadians degs = pi * degs / 180
 -- TODO: Actually use the camera
 makeRays :: Env -> [Ray]
 makeRays (Env width height (Camera position _ _ fov)) = do
-  y <- [0 .. height - 1]
+  y <- [height - 1, height - 2 .. 0]
   x <- [0 .. width - 1]
   let
     nx = 2 * (x `fdiv` width) - 1;

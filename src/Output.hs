@@ -12,11 +12,10 @@ import           Linear
 pixelsToImage :: [Color] -> [PixelBaseComponent PixelRGBA8]
 pixelsToImage = concatMap toPixel
     where
-        toPixel (V4 r g b a) = map (floor . (255 *)) [r, g, b, a]
+        toPixel (V4 r g b _) = [floor (r * 255), floor (g * 255), floor (b * 255)]
 
 saveImage :: Env -> String -> [Color] -> IO ()
 saveImage (Env w h _) filename img = writeBitmap filename image
     where
         image :: Image PixelRGBA8
-        image = Image w h $ fromList pixels
-        pixels = pixelsToImage img
+        image = Image w h $ fromList $ pixelsToImage img

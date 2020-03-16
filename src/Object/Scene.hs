@@ -14,7 +14,7 @@ plain :: Color -> MaterialType -> Material
 plain color = Material (const color)
 
 chess :: Point -> Color
-chess (V3 x _ z) = if (even . floor) x == (even . floor) z then V4 1 1 1 1 else V4 0 0 0 1
+chess (V3 x _ z) = if (even . floor) (x / 2) == (even . floor) (z / 2) then V4 1 1 1 1 else V4 0 0 0 1 
 
 chessboard = Material chess $ Reflection 0.2
 white = plain (V4 1 1 1 1) $ Reflection 0.8
