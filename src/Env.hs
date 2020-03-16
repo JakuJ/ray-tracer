@@ -1,6 +1,13 @@
 {-# LANGUAGE TemplateHaskell #-}
 
-module Env where
+module Env (
+    Env (..),
+    Camera (..),
+    defaultEnv,
+    -- * Lenses
+    imageWidth,
+    imageHeight
+) where
 
 import           Control.Lens (makeLenses)
 import           Linear       (V3 (..))
@@ -25,7 +32,7 @@ makeLenses ''Env
 resEnv :: Int -> Int -> Env
 resEnv w h = Env w h $ Camera (V3 1 3 6) (V3 0 0 (-1)) (V3 0 1 0) 60
 
-hd, fullHD, res2k, res4k :: Env 
+hd, fullHD, res2k, res4k :: Env
 hd = resEnv 720 480
 fullHD = resEnv 1920 1080
 res2k = resEnv 2560 1600

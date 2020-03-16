@@ -1,18 +1,22 @@
 module Output where
 
-import           Common          (Color)
+import           Common               (Color)
 import           Env
 
-import           Codec.BMP
-import           Control.Lens    ((^.))
-import           Data.ByteString (pack)
-import           Data.Word       (Word8)
-import           Linear          (V4 (..))
+import           Codec.Picture
+import           Control.Lens         ((^.))
+import           Data.Vector.Storable (fromList)
+import           Data.Word            (Word8)
+import           Linear
 
-type Image = [Word8]
+pixelsToImage :: [Color] -> [PixelBaseComponent PixelRGBA8]
+pixelsToImage = concatMap toPixel
+    where
+        toPixel (V4 r g b a) = map (floor . (255 *)) [r, g, b, a]
 
-pixelsToImage :: [Color] -> Image
-pixelsToImage = concatMap (\(V4 x y z w) -> map (floor . (* 255)) [x, y, z, w])
-
-saveImage :: Env -> String -> Image -> IO ()
-saveImage (Env w h _) filename img = writeBMP filename $ packRGBA32ToBMP w h $ pack img
+saveImage :: Env -> String -> [Color] -> IO ()
+saveImage (Env w h _) filename img = writeBitmap filename image
+    where
+        image :: Image PixelRGBA8
+        image = Image w h $ fromList pixels
+        pixels = pixelsToImage img
