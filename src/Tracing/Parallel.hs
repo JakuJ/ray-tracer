@@ -3,11 +3,11 @@ module Tracing.Parallel (
 ) where
 
 import           Env                         (Env, imageHeight, imageWidth)
+import           Tracing.Ray                 (Ray (..))
 
 import           Control.DeepSeq             (NFData, force)
 import           Control.Lens                ((^.))
 import           Control.Parallel.Strategies (rpar, rseq, runEval)
-import           Tracing.Ray                 (Ray (..))
 
 parallelize :: NFData b => Env -> (a -> b) -> [a] -> [b]
 parallelize = parallelizeEval

@@ -45,9 +45,7 @@ clamp :: Color -> Color
 clamp = liftI2 min (V4 1 1 1 1) . liftI2 max zero
 
 render :: Env -> Scene -> [Color]
-render env scene = parallelize env (trace scene) rays
-    where
-        rays = makeRays env
+render env scene = parallelize env (trace scene) $ makeRays env
 
 trace :: Scene -> Ray -> Color
 trace scene = fromMaybe zero . traceRec 16 scene

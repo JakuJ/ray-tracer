@@ -9,7 +9,7 @@ profile:
 	stack build && stack exec -- $(EXECUTABLE) +RTS -N -ls -s
 
 memory:
-	stack build --profile && stack exec --profile -- $(EXECUTABLE) +RTS -N -s -xt -h
+	stack build --profile && stack exec --profile -- $(EXECUTABLE) +RTS -N -h
 	hp2ps -e8in -c $(EXECUTABLE).hp
 	open $(EXECUTABLE).ps
 
