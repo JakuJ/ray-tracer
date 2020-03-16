@@ -1,16 +1,9 @@
 module Object.Material (
-  -- * Data types
-  Material(..), MaterialType(..),
-  -- * Blending functions
-  alphaBlend,
-  -- * Miscellanea
-  background
+  Material(..),
+  MaterialType(..)
 ) where
 
-import           Common       (Color, Point)
-
-import           Control.Lens ((^.))
-import           Linear
+import           Common (Color, Point)
 
 -- |Represents the material type
 data MaterialType
@@ -27,15 +20,3 @@ data Material = Material {
   -- The alpha channel is used when blending if the material type is 'Refraction'.
   _materialType  :: MaterialType
 }
-
-background :: Color
-background = V4 0 0 0 1
-
--- |Blend two RGBA 'Color' vectors. If the second one is 'Nothing', treat it as black.
-alphaBlend :: Color -> Color -> Color
-alphaBlend c1 c2 = V4 r g b out_a
-  where
-    a1 = c1 ^. _w
-    a2 = (c2 ^. _w) * (1 - a1)
-    out_a = a1 + a2
-    (V3 r g b) = ((c1 ^. _xyz) ^* a1 ^+^ (c2 ^. _xyz) ^* a2) ^/ out_a

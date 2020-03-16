@@ -25,6 +25,7 @@ dependencies:
 - linear
 - lens
 - parallel
+- deepseq
 
 library:
   source-dirs: src

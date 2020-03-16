@@ -6,6 +6,7 @@ Raytracer.cabal
 scene.txt
 # Profiling
 *.eventlog
+*.prof
 *.hp
 *.ps
 *.aux

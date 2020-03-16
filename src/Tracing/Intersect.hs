@@ -4,7 +4,6 @@ import           Common
 import           Object.Material
 import           Object.Primitive
 import           Tracing.Ray
-import           Utils
 
 import           Data.List        (sortOn)
 import           Data.Maybe       (listToMaybe)
@@ -25,6 +24,12 @@ offset (Ray ro rd) = Ray (ro + rd ^* 0.0001) rd
 
 clamp :: Color -> Color
 clamp = liftI2 min (V4 1 1 1 1) . liftI2 max zero
+
+filterZipMaybe :: (a -> Maybe b) -> [a] -> [(a, b)]
+filterZipMaybe _ [] = []
+filterZipMaybe f (x:xs) = case f x of
+  Just b  -> (x, b) : filterZipMaybe f xs
+  Nothing -> filterZipMaybe f xs
 
 tryHit :: Primitive a => Ray -> [a] -> Maybe (Normal, Material)
 tryHit ray primitives = do

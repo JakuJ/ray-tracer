@@ -22,6 +22,15 @@ data Env = Env {
 }
 makeLenses ''Env
 
+resEnv :: Int -> Int -> Env
+resEnv w h = Env w h $ Camera (V3 1 3 6) (V3 0 0 (-1)) (V3 0 1 0) 60
+
+hd, fullHD, res2k, res4k :: Env 
+hd = resEnv 720 480
+fullHD = resEnv 1920 1080
+res2k = resEnv 2560 1600
+res4k = resEnv 3840 2160
+
 -- |Default testing environment
 defaultEnv :: Env
-defaultEnv = Env 3000 3000 $ Camera (V3 1 3 6) (V3 0 0 (-1)) (V3 0 1 0) 60
+defaultEnv = res2k

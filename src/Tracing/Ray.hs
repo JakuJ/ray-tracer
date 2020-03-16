@@ -1,3 +1,5 @@
+{-# LANGUAGE Strict #-}
+
 module Tracing.Ray (
     Ray (..),
     makeRays
