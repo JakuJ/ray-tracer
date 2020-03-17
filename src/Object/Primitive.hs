@@ -13,7 +13,7 @@ module Object.Primitive (
 
 import           Common
 import           Object.Material
-import           Tracing.Ray      (Ray (..))
+import           Tracing.Ray     (Ray (..))
 
 import           Linear
 
@@ -73,20 +73,21 @@ instance Primitive Sphere where
   normalAt point (Sphere ce _ _) = normalize $ point - ce
 
 data Plane = Plane
-  { _planeDirection :: {-# UNPACK #-} !Direction
-  , _planeMaterial  :: {-# UNPACK #-} !Material
+  { _planeOrigin    :: Point
+  , _planeDirection :: Direction
+  , _planeMaterial  :: Material
   }
 
 -- |A smart constructor upcasting the 'Plane' type to 'Shape'.
-plane :: Direction -> Material -> Shape
-plane a b = Shape $ Plane a b
+plane :: Point -> Direction -> Material -> Shape
+plane a b c = Shape $ Plane a b c
 
 instance HasMaterial Plane where
   material = _planeMaterial
 
 instance Primitive Plane where
-  distanceTo (Ray ro rd) (Plane dir _) = if k < 0 then Nothing else Just k
+  distanceTo (Ray ro rd) (Plane orig dir _) = if k < 0 then Nothing else Just k
     where
-      k = - dot ro dir / dot rd dir
+      k = - dot (ro - orig) dir / dot rd dir
 
-  normalAt _ (Plane dir _) = dir
+  normalAt _ (Plane _ dir _) = normalize dir

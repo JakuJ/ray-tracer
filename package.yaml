@@ -26,6 +26,7 @@ dependencies:
 - lens
 - parallel
 - deepseq
+- monad-par
 
 library:
   source-dirs: src

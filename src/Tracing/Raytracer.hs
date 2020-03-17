@@ -38,14 +38,11 @@ refract index i n = if k < 0 then Nothing else Just $ (eta *^ i) ^+^ (n' ^* (eta
         (cosi', eta, n') = if cosi < 0 then (-cosi, 1 / index, n) else (cosi, index, negate n)
         k = 1 - eta * eta * (1 - cosi' * cosi')
 
-offset :: Ray -> Ray
-offset (Ray ro rd) = Ray (ro + rd ^* 0.0001) rd
-
 clamp :: Color -> Color
 clamp = liftI2 min (V4 1 1 1 1) . liftI2 max zero
 
 render :: Env -> Scene -> [Color]
-render env scene = parallelize env (trace scene) $ makeRays env
+render env scene = parallelize (trace scene) $ makeRays env
 
 trace :: Scene -> Ray -> Color
 trace scene = fromMaybe zero . traceRec 16 scene
@@ -55,18 +52,22 @@ traceRec 0 _ _ = Nothing
 traceRec n scene@(Scene objs lights) ray@(Ray ro rd) = do
   ((point, normal), Material colorAt mtype) <- tryHit ray objs
   let
-    color = colorAt point
-    incoming = fromMaybe (V4 0 0 0 1) $ case mtype of
+    phong@(Phong ambient _ _) = colorAt point
+    
+    offPoint = point + normal ^* 0.0001
+    light = sum $ map (applyLight objs (point, normal) phong) lights
+    local = 0.2 * ambient + 0.8 * light
+    
+    incoming = fromMaybe zero $ case mtype of
       Diffuse -> Nothing
       Reflection f -> if f == 0
         then Nothing
         else traceRec (n - 1) scene $ offset $ Ray point $ reflect rd normal
-      Refraction ix -> if color ^. _w == 1
+      Refraction ix -> if local ^. _w == 1
         then Nothing
         else traceRec (n - 1) scene . offset . Ray point =<< refract ix rd normal
-    offPoint = point + normal ^* 0.0001
-    light = sum $ map (applyLight objs offPoint) lights
+    
     in return . clamp $ case mtype of
-      Diffuse      -> light * color
-      Reflection f -> color * (light ^* (1 - f) + incoming ^* f)
-      Refraction _ -> alphaBlend color incoming
+      Diffuse      -> local
+      Reflection f -> lerp f incoming local
+      Refraction _ -> alphaBlend local incoming

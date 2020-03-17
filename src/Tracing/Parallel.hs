@@ -2,25 +2,18 @@ module Tracing.Parallel (
     parallelize
 ) where
 
-import           Env                         (Env, imageHeight, imageWidth)
-import           Tracing.Ray                 (Ray (..))
-
-import           Control.DeepSeq             (NFData, force)
-import           Control.Lens                ((^.))
-import           Control.Parallel.Strategies (rpar, rseq, runEval)
-
-parallelize :: NFData b => Env -> (a -> b) -> [a] -> [b]
-parallelize = parallelizeEval
+import           Control.DeepSeq             (NFData)
+import           Control.Parallel.Strategies
 
 chunksOf :: Int -> [a] -> [[a]]
-chunksOf _ [] = []
-chunksOf n xs = let (c, cs) = splitAt n xs in c : chunksOf n cs
+chunksOf n [] = []
+chunksOf n xs = let (a, b) = splitAt n xs in a : chunksOf n b
 
-parallelizeEval :: NFData b => Env -> (a -> b) -> [a] -> [b]
-parallelizeEval env f lst = runEval $ do
-    ts <- mapM (rpar . force . map f) chunks
-    mapM_ rseq ts
-    return $ concat ts
-    where
-        chunks = chunksOf chunkSize lst
-        chunkSize = (env ^. imageWidth * env ^. imageHeight) `div` 1000
+parallelize :: NFData b => (a -> b) -> [a] -> [b]
+parallelize f = withStrategy (parBuffer 100 rdeepseq) . map f
+
+-- 1000 chunksSize
+-- 22.15 GB on heap
+-- 1.61 GB in GC
+-- 19 MB max residency
+-- 18 MB total

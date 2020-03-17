@@ -40,4 +40,4 @@ res4k = resEnv 3840 2160
 
 -- |Default testing environment
 defaultEnv :: Env
-defaultEnv = res2k
+defaultEnv = fullHD
