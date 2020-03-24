@@ -1,4 +1,5 @@
 .stack-work/
+.vscode/
 .DS_Store
 Raytracer.cabal
 *~
@@ -6,8 +7,11 @@ Raytracer.cabal
 *.bmp
 scene.txt
 # Profiling
+.hpc/
 *.eventlog
 *.prof
 *.hp
 *.ps
 *.aux
+*.svg
+*.prof.html

@@ -31,10 +31,10 @@ class Primitive a where
   hit :: Ray -> Float -> a -> (Normal, Material)
 
   default hit :: HasMaterial a => Ray -> Float -> a -> (Normal, Material)
-  hit (Ray ro rd) dist p = ((point, dir), material p)
+  hit (Ray ro rd) dist p = ((pt, dir), material p)
     where
-      point = ro + rd ^* dist
-      dir = normalAt point p
+      pt = ro + rd ^* dist
+      dir = normalAt pt p
 
 -- |Existential qualifier for the 'Primitive' class.
 -- Used to achieve dynamic dispatch known from OOP languages.
@@ -70,7 +70,7 @@ instance Primitive Sphere where
       far = -b + sqrt h
       closer = let val = min far near in if val < 0 then Nothing else Just val
 
-  normalAt point (Sphere ce _ _) = normalize $ point - ce
+  normalAt pt (Sphere ce _ _) = normalize $ pt - ce
 
 data Plane = Plane
   { _planeOrigin    :: Point

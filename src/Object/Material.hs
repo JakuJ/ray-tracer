@@ -44,4 +44,5 @@ uniform ph = Material (const ph)
 chessboard :: Color -> Color -> MaterialType -> Material
 chessboard c1 c2 = Material (plain . pattern)
   where
-    pattern (V3 x _ z) = if (even . floor) x == (even . floor) z then c1 else c2
+    pattern (V3 x _ z) = if check x == check z then c1 else c2
+    check = even . (floor :: Float -> Int)

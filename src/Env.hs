@@ -19,7 +19,6 @@ data Camera = Camera {
     _up       :: V3 Float, -- ^Camera up vector
     _fov      :: Float     -- ^Field of view in degrees
 }
-makeLenses ''Camera
 
 -- |Holds environmental constants
 data Env = Env {
@@ -30,7 +29,7 @@ data Env = Env {
 makeLenses ''Env
 
 resEnv :: Int -> Int -> Env
-resEnv w h = Env w h $ Camera (V3 1 3 6) (V3 0 0 (-1)) (V3 0 1 0) 60
+resEnv w h = Env w h $ Camera (V3 0 3 0) (V3 0 0 (-1)) (V3 0 1 0) 60
 
 hd, fullHD, res2k, res4k :: Env
 hd = resEnv 720 480

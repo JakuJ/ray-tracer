@@ -25,31 +25,34 @@ dependencies:
 - linear
 - lens
 - parallel
-- deepseq
-- monad-par
+- random
+- mtl
 
 library:
   source-dirs: src
 
 ghc-options:
+# profiling
 - -eventlog
-- -O3
+- -fprof-auto
+- -fno-prof-count-entries
+# optimization
+- -O2
+- -fexcess-precision
+- -flate-dmd-anal
+- -fllvm
+# warnings
+- -Wall
+- -Wcompat
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wredundant-constraints
+- -Wno-unsupported-llvm-version
 
 executables:
-  Raytracer-exe:
+  Raytracer:
     main:                Main.hs
     source-dirs:         app
-    ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
-    dependencies:
-    - Raytracer
-
-tests:
-  Raytracer-test:
-    main:                Spec.hs
-    source-dirs:         test
     ghc-options:
     - -threaded
     - -rtsopts

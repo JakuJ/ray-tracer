@@ -19,7 +19,8 @@ filterZipMaybe f (x:xs) = case f x of
   Nothing -> filterZipMaybe f xs
 
 offset :: Ray -> Ray
-offset (Ray ro rd) = Ray (ro + rd ^* 0.0001) rd
+offset (Ray ro rd) = Ray (ro + rd ^* 0.001) rd
+{-# INLINE offset #-}
 
 tryHit :: Primitive a => Ray -> [a] -> Maybe (Normal, Material)
 tryHit ray primitives = do
