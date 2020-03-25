@@ -23,7 +23,6 @@ dependencies:
 - JuicyPixels
 - vector
 - linear
-- lens
 - parallel
 - random
 - mtl
@@ -38,10 +37,13 @@ ghc-options:
 - -fno-prof-count-entries
 # optimization
 - -O2
-- -fexcess-precision
 - -flate-dmd-anal
 - -fllvm
+- -flate-specialise
+- -optc-ffast-math
+- -optc-O3
 # warnings
+- -fwarn-missing-signatures
 - -Wall
 - -Wcompat
 - -Wincomplete-record-updates

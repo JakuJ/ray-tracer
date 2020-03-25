@@ -10,16 +10,16 @@ import           Linear        (V3 (..), normalize)
 import           Env
 
 data Ray = Ray {
-  _rayOrigin    :: {-# UNPACK #-} !(V3 Float),
-  _rayDirection :: {-# UNPACK #-} !(V3 Float)
-} deriving (Show)
+  _rayOrigin    :: V3 Double,
+  _rayDirection :: V3 Double
+}
 
 -- | Divide with cast to float
 fdiv :: (Integral a, Fractional b) => a -> a -> b
 fdiv = (/) `on` fromIntegral
 
 toRadians :: Floating a => a -> a
-toRadians degs = pi * degs / 180
+toRadians = (* pi) . (/ 180)
 
 -- TODO: Actually use the camera
 makeRays :: Env -> [Direction]
@@ -29,7 +29,7 @@ makeRays (Env width height (Camera _ _ _ fov)) = do
   let
     nx = 2 * (x `fdiv` width) - 1
     ny = 2 * (y `fdiv` height) - 1
-    in return $ normalize $ V3 (aspect * nx * tan_a) (ny * tan_a) (-1)
+    in return $! normalize $ V3 (aspect * nx * tan_a) (ny * tan_a) (-1)
   where
     aspect = width `fdiv` height
     tan_a = tan $ toRadians fov / 2

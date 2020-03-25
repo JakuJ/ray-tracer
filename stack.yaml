@@ -1,4 +1,7 @@
 resolver: lts-14.27
 allow-newer: true
-packages:
-- .
+rebuild-ghc-options: true
+arch: x86_64
+color: always
+build:
+    keep-going: true

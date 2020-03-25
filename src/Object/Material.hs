@@ -15,9 +15,9 @@ import           Linear (V3 (..))
 data MaterialType
   = Diffuse
   -- ^Diffuse, opaque material. Does not reflect nor transmit light.
-  | Reflection Float
+  | Reflection {-# UNPACK #-} !Double
   -- ^Reflective material characterized by a reflection index (0 - not reflective, 1 - perfect mirror).
-  | Refraction Float
+  | Refraction {-# UNPACK #-} !Double
   -- ^Transparent material characterized by a refraction index.
 
 data Phong = Phong {
@@ -37,12 +37,14 @@ data Material = Material {
 
 plain :: Color -> Phong
 plain c = Phong c c c
+{-# INLINE plain #-}
 
 uniform :: Phong -> MaterialType -> Material
-uniform ph = Material (const ph)
+uniform = Material . const
+{-# INLINE uniform #-}
 
 chessboard :: Color -> Color -> MaterialType -> Material
 chessboard c1 c2 = Material (plain . pattern)
   where
     pattern (V3 x _ z) = if check x == check z then c1 else c2
-    check = even . (floor :: Float -> Int)
+    check = even . (floor :: Double -> Int)

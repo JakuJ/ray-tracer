@@ -24,13 +24,13 @@ class HasMaterial a where
 -- |Represents types that can be intersected by rays
 class Primitive a where
   -- |'Just' distance to the primitive if the ray intersects it, otherwise 'Nothing'.
-  distanceTo :: Ray -> a -> Maybe Float
+  distanceTo :: Ray -> a -> Maybe Double
   -- |Surface normal at a given point in space.
   normalAt :: Point -> a -> Direction
   -- |Collision point, normal vector and material info. Assumes intersection.
-  hit :: Ray -> Float -> a -> (Normal, Material)
+  hit :: Ray -> Double -> a -> (Normal, Material)
 
-  default hit :: HasMaterial a => Ray -> Float -> a -> (Normal, Material)
+  default hit :: HasMaterial a => Ray -> Double -> a -> (Normal, Material)
   hit (Ray ro rd) dist p = ((pt, dir), material p)
     where
       pt = ro + rd ^* dist
@@ -42,24 +42,29 @@ class Primitive a where
 data Shape = forall a. Primitive a => Shape a
 
 instance Primitive Shape where
+  {-# INLINE distanceTo #-}
+  {-# INLINE normalAt #-}
+  {-# INLINE hit #-}
   distanceTo ray (Shape a) = distanceTo ray a
   normalAt p (Shape a) = normalAt p a
   hit ray f (Shape a) = hit ray f a
 
 data Sphere = Sphere
-  { _spherePosition :: {-# UNPACK #-} !Point
-  , _sphereRadius   :: {-# UNPACK #-} !Float
-  , _sphereMaterial :: {-# UNPACK #-} !Material
+  { _spherePosition :: Point
+  , _sphereRadius   :: {-# UNPACK #-} !Double
+  , _sphereMaterial :: Material
   }
 
 -- |A smart constructor upcasting the 'Sphere' type to 'Shape'.
-sphere :: Point -> Float -> Material -> Shape
-sphere a b c = Shape $ Sphere a b c
+sphere :: Point -> Double -> Material -> Shape
+sphere = Shape .:. Sphere
 
 instance HasMaterial Sphere where
+  {-# INLINE material #-}
   material = _sphereMaterial
 
 instance Primitive Sphere where
+  {-# INLINE normalAt #-}
   distanceTo (Ray ro rd) (Sphere ce ra _) = if h < 0 then Nothing else closer
     where
       oc = ro - ce
@@ -80,12 +85,14 @@ data Plane = Plane
 
 -- |A smart constructor upcasting the 'Plane' type to 'Shape'.
 plane :: Point -> Direction -> Material -> Shape
-plane a b c = Shape $ Plane a b c
+plane = Shape .:. Plane
 
 instance HasMaterial Plane where
+  {-# INLINE material #-}
   material = _planeMaterial
 
 instance Primitive Plane where
+  {-# INLINE normalAt #-}
   distanceTo (Ray ro rd) (Plane orig dir _) = if k < 0 then Nothing else Just k
     where
       k = - dot (ro - orig) dir / dot rd dir
