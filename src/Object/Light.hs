@@ -9,20 +9,23 @@ import           Tracing.Ray
 import           Linear            hiding (point)
 
 class Light a where
-    applyLight :: Primitive p => [p] -> Normal -> Phong -> a -> Color
+    applyLight :: Primitive p => [p] -> Point -> Direction -> Direction -> Phong -> a -> Color
 
 data PointLight = PointLight Point Color
 
 instance Light PointLight where
-  applyLight scene (point, normal) (Phong _ diffuse _) (PointLight lightPos color) = case obscured of
+  applyLight scene point normal toCamera (Phong color _ diffuse specular shininess) (PointLight lightPos lightColor) = case obscured of
+    Nothing -> light
     Just ((colPt, _), _) -> if distance point colPt < distToLight
       then zero
       else light
-    Nothing -> light
     where
+      toLight = normalize $ lightPos - point
+      obscured = tryHit (offset $ Ray point toLight) scene
       distToLight = distance point lightPos
-      dirToLight = normalize $ lightPos - point
-      obscured = tryHit (offset $ Ray point dirToLight) scene
       intensity = exp (-0.1 * distToLight)
-      cos_a = dot normal dirToLight
-      light = if cos_a > 0 then diffuse * color ^* (intensity * cos_a) else zero
+      cos_a = dot normal toLight
+      lambertian = diffuse * cos_a
+      cos_b = dot toCamera (reflect (negate toLight) normal)
+      highlight = specular * cos_b ** shininess
+      light = if cos_a > 0 then lightColor * color ^* (intensity * (lambertian + highlight)) else zero

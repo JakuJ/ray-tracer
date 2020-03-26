@@ -21,9 +21,11 @@ data MaterialType
   -- ^Transparent material characterized by a refraction index and transmittance.
 
 data Phong = Phong {
-  _ambient  :: Color,
-  _diffuse  :: Color,
-  _specular :: Color
+  _color     :: Color,
+  _ambient   :: {-# UNPACK #-} !Double,
+  _diffuse   :: {-# UNPACK #-} !Double,
+  _specular  :: {-# UNPACK #-} !Double,
+  _shininess :: {-# UNPACK #-} !Double
 }
 
 data Material = Material {
@@ -36,7 +38,7 @@ data Material = Material {
 -- Material constructors
 
 plain :: Color -> Phong
-plain c = Phong c c c
+plain c = Phong c 1 1 1 10
 {-# INLINE plain #-}
 
 uniform :: Phong -> MaterialType -> Material

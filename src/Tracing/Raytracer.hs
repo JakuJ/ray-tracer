@@ -15,10 +15,6 @@ import           Tracing.Ray
 
 import           Linear            hiding (point, trace)
 
-reflect :: Direction -> Direction -> Direction
-reflect !d !n = d ^-^ (n ^* (2 * d `dot` n))
-{-# INLINE reflect #-}
-
 refract :: Double -> Direction -> Direction -> Maybe Direction
 refract index i n = if k < 0 then Nothing else Just $ (eta *^ i) ^+^ (n' ^* (eta * cosi' - sqrt k))
   where
@@ -38,17 +34,17 @@ trace :: Scene -> Ray -> Color
 trace = traceRec 32
 
 traceRec :: Int -> Scene -> Ray -> Color
-traceRec = traceRec' clamp  1
+traceRec = traceRec' clamp 1
   where
     traceRec' :: (Color -> Color) -> Double -> Int -> Scene -> Ray -> Color
     traceRec' cont _ 0 _ _ = cont zero
     traceRec' cont !intensity n scene@(Scene objs lights) ray@(Ray _ rd)
-      | intensity < 0.02 = cont zero
+      | intensity < 0.01 = cont zero
       | otherwise = case tryHit ray objs of
         Nothing -> cont zero
         Just ((point, normal), Material colorAt mtype) -> let
           phong = colorAt point
-          direct = sum $ map (applyLight objs (point, normal) phong) lights
+          direct = sum $ map (applyLight objs point normal (negate rd) phong) lights
           in case mtype of
             Diffuse -> cont direct
             Reflection reflectivity -> if reflectivity == 0
