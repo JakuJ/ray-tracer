@@ -5,12 +5,12 @@ import           Env                  (Env (..))
 
 import           Codec.Picture
 import qualified Data.Vector.Storable as SV (Vector, fromListN)
-import           Linear               (V4 (..))
+import           Linear               (V3 (..))
 
 pixelsToImage :: Int -> [Color] -> SV.Vector (PixelBaseComponent PixelRGBA8)
 pixelsToImage size = SV.fromListN size . concatMap toPixel
   where
-    toPixel (V4 r g b _) = [floor (r * 255), floor (g * 255), floor (b * 255), 255]
+    toPixel (V3 r g b) = [floor (r * 255), floor (g * 255), floor (b * 255), 255]
 
 saveImage :: Env -> String -> [Color] -> IO ()
 saveImage (Env w h _) path img = let
