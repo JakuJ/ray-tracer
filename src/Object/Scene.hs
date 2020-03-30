@@ -13,7 +13,7 @@ import           Control.Monad.State (State, evalState, state)
 import           Linear
 import           System.Random       (StdGen, mkStdGen, random)
 
-data Scene = Scene [Shape] [PointLight]
+data Scene = Scene [Shape] [Light]
 
 -- Random monad
 
@@ -26,9 +26,6 @@ randomChoice :: [a] -> Rand a
 randomChoice lst = (lst !!) . (`mod` length lst) <$> state random
 
 -- Materials
-
-chess_floor :: Material
-chess_floor = chessboard (V3 1 1 1) (V3 0 0 0) $ Reflection 0.3
 
 rgb :: Color -> Material
 rgb c = uniform (plain c) Diffuse
@@ -56,15 +53,15 @@ spheres = evalState (replicateM 25 randomSphere) $ mkStdGen 1337
 defaultShapes :: [Shape]
 defaultShapes = ground : lens : spheres
   where
-    ground = plane zero (V3 0 1 0) chess_floor
+    ground = plane zero (V3 0 1 0) $ chessboard (V3 1 1 1) (V3 0 0 0) $ Reflection 0.5
     lens = sphere (V3 0 3 (-5)) 1 $ uniform (plain (V3 1 1 1)) $ Refraction 1.8 0.9
 
-whiteLight :: Point -> PointLight
-whiteLight p = PointLight p $ V3 1 1 1
+whiteLight :: Point -> Light
+whiteLight p = pointLight p $ V3 1 1 1
 {-# INLINE whiteLight #-}
 
-defaultLights :: [PointLight]
-defaultLights = map whiteLight [V3 x 5 z | x <- [-5, 5], z <- [-10, 0]]
+defaultLights :: [Light]
+defaultLights = ambientLight (V3 0.1 0.1 0.1) : [whiteLight $ V3 x 5 z | x <- [-5, 5], z <- [-10, 0]]
 
 defaultScene :: Scene
 defaultScene = Scene defaultShapes defaultLights

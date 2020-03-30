@@ -1,4 +1,11 @@
-module Object.Light where
+{-# LANGUAGE ExistentialQuantification #-}
+module Object.Light (
+  LightSource,
+  applyLight,
+  Light,
+  pointLight,
+  ambientLight
+) where
 
 import           Common
 import           Object.Material
@@ -8,12 +15,20 @@ import           Tracing.Ray
 
 import           Linear            hiding (point)
 
-class Light a where
+class LightSource a where
     applyLight :: Primitive p => [p] -> Point -> Direction -> Direction -> Phong -> a -> Color
+
+data Light = forall a. LightSource a => Light a
+
+instance LightSource Light where
+  applyLight a b c d e (Light l) = applyLight a b c d e l
 
 data PointLight = PointLight Point Color
 
-instance Light PointLight where
+pointLight :: Point -> Color -> Light
+pointLight = Light .: PointLight
+
+instance LightSource PointLight where
   applyLight scene point normal toCamera (Phong color _ diffuse specular shininess) (PointLight lightPos lightColor) = case obscured of
     Nothing -> light
     Just ((colPt, _), _) -> if distance point colPt < distToLight
@@ -29,3 +44,12 @@ instance Light PointLight where
       cos_b = dot toCamera (reflect (negate toLight) normal)
       highlight = specular * cos_b ** shininess
       light = if cos_a > 0 then lightColor * color ^* (intensity * (lambertian + highlight)) else zero
+
+newtype AmbientLight = AmbientLight Color
+
+ambientLight :: Color -> Light
+ambientLight = Light . AmbientLight
+
+instance LightSource AmbientLight where
+  applyLight _ _ _ _ (Phong color ambient _ _ _) (AmbientLight lightColor) = ambient *^ color * lightColor
+

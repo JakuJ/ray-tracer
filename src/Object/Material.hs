@@ -38,7 +38,7 @@ data Material = Material {
 -- Material constructors
 
 plain :: Color -> Phong
-plain c = Phong c 1 1 1 10
+plain c = Phong c 1 1 1 30
 {-# INLINE plain #-}
 
 uniform :: Phong -> MaterialType -> Material
