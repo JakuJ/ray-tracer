@@ -5,7 +5,7 @@ module Tracing.Ray (
 
 import           Common        (Direction)
 import           Data.Function (on)
-import           Linear        (V3 (..), normalize)
+import           Linear
 
 import           Env
 
@@ -21,15 +21,17 @@ fdiv = (/) `on` fromIntegral
 toRadians :: Floating a => a -> a
 toRadians = (* pi) . (/ 180)
 
--- TODO: Actually use the camera
 makeRays :: Env -> [Direction]
-makeRays (Env width height (Camera _ _ _ fov)) = do
-  y <- [height - 1, height - 2 .. 0]
+makeRays (Env width height (Camera eye look_at up fov)) = do
+  y <- [0 .. height - 1]
   x <- [0 .. width - 1]
   let
-    nx = 2 * (x `fdiv` width) - 1
-    ny = 2 * (y `fdiv` height) - 1
-    in return $! normalize $ V3 (aspect * nx * tan_a) (ny * tan_a) (-1)
+    xp = 1 - 2 * (x `fdiv` width)
+    yp = 1 - 2 * (y `fdiv` height)
+    in return $! normalize $ d *^ w + aspect * xp *^ u + yp *^ v
   where
+    w = normalize $ look_at - eye
+    u = normalize $ cross up w
+    v = normalize $ cross w u
     aspect = width `fdiv` height
-    tan_a = tan $ toRadians fov / 2
+    d = 1 / tan (toRadians fov / 2)

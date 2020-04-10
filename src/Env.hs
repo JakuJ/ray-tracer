@@ -6,14 +6,16 @@ module Env (
     defaultEnv
 ) where
 
+import           Common (Direction, Point)
+
 import           Linear (V3 (..))
 
 -- |Represents the camera used for the rendering
 data Camera = Camera {
-    _position :: V3 Double, -- ^Camera position in world space
-    _front    :: V3 Double, -- ^Camera direction, normalized vector
-    _up       :: V3 Double, -- ^Camera up vector
-    _fov      :: {-# UNPACK #-} !Double     -- ^Field of view in degrees
+    _eye    :: Point, -- ^Camera position in world space
+    _lookAt :: Point, -- ^Camera look-at point
+    _up     :: Direction, -- ^Camera up vector
+    _fov    :: {-# UNPACK #-} !Double -- ^Field of view in degrees
 }
 
 -- |Holds environmental constants
@@ -24,7 +26,7 @@ data Env = Env {
 }
 
 resEnv :: Int -> Int -> Env
-resEnv w h = Env w h $ Camera (V3 0 3 0) (V3 0 0 (-1)) (V3 0 1 0) 60
+resEnv w h = Env w h $ Camera (V3 0 12 0.1) (V3 0 0 0) (V3 0 1 0) 60
 
 hd, fullHD, res2k, res4k :: Env
 hd = resEnv 720 480

@@ -42,7 +42,7 @@ materials = map rgb [V3 0.698 0.617 0.851 -- light pastel purple
 randomSphere :: Rand Shape
 randomSphere = do
   x <- randFloat (-5) 5
-  z <- randFloat (-20) (-5)
+  z <- randFloat (-5) 5
   y <- randFloat 0 1
   mat <- randomChoice materials
   return $! sphere (V3 x y z) y mat
@@ -51,17 +51,23 @@ spheres :: [Shape]
 spheres = evalState (replicateM 25 randomSphere) $ mkStdGen 1337
 
 defaultShapes :: [Shape]
-defaultShapes = ground : lens : spheres
+defaultShapes = ground : spheres
   where
     ground = plane zero (V3 0 1 0) $ chessboard (V3 1 1 1) (V3 0 0 0) $ Reflection 0.5
-    lens = sphere (V3 0 3 (-5)) 1 $ uniform (plain (V3 1 1 1)) $ Refraction 1.8 0.9
+    lens = sphere (V3 0 3 0) 1 $ uniform (plain (V3 1 1 1)) $ Refraction 1.8 0.9
 
 whiteLight :: Point -> Light
 whiteLight p = pointLight p $ V3 1 1 1
 {-# INLINE whiteLight #-}
 
+whiteDir :: Double -> Direction -> Light
+whiteDir int = dirLight <*> const (V3 int int int)
+
 defaultLights :: [Light]
-defaultLights = ambientLight (V3 0.1 0.1 0.1) : [whiteLight $ V3 x 5 z | x <- [-5, 5], z <- [-10, 0]]
+defaultLights = [whiteDir 0.25 (normalize $ V3 (-1) (-1) 0)
+                ,whiteDir 0.25 (normalize $ V3 1 (-1) 0)
+                ,whiteDir 0.25 (normalize $ V3 0 (-1) (-1))
+                ,whiteDir 0.25 (normalize $ V3 0 (-1) 1)]
 
 defaultScene :: Scene
 defaultScene = Scene defaultShapes defaultLights
