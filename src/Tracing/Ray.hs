@@ -19,7 +19,8 @@ fdiv :: (Integral a, Fractional b) => a -> a -> b
 fdiv = (/) `on` fromIntegral
 
 toRadians :: Floating a => a -> a
-toRadians = (* pi) . (/ 180)
+toRadians x = pi * x / 180
+{-# INLINE toRadians #-}
 
 makeRays :: Env -> [Direction]
 makeRays (Env width height (Camera eye look_at up fov)) = do

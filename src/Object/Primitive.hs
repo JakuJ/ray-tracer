@@ -36,28 +36,11 @@ class Primitive a where
       pt = ro + rd ^* dist
       dir = normalAt pt p
 
--- |Existential qualifier for the 'Primitive' class.
--- Used to achieve dynamic dispatch known from OOP languages.
--- Makes representing the scene as a list of 'Primitive' class objects possible.
-data Shape = forall a. Primitive a => Shape a
-
-instance Primitive Shape where
-  {-# INLINE distanceTo #-}
-  {-# INLINE normalAt #-}
-  {-# INLINE hit #-}
-  distanceTo ray (Shape a) = distanceTo ray a
-  normalAt p (Shape a) = normalAt p a
-  hit ray f (Shape a) = hit ray f a
-
 data Sphere = Sphere
   { _spherePosition :: Point
   , _sphereRadius   :: {-# UNPACK #-} !Double
   , _sphereMaterial :: Material
-  }
-
--- |A smart constructor upcasting the 'Sphere' type to 'Shape'.
-sphere :: Point -> Double -> Material -> Shape
-sphere = Shape .:. Sphere
+  } deriving (Show)
 
 instance HasMaterial Sphere where
   {-# INLINE material #-}
@@ -81,11 +64,7 @@ data Plane = Plane
   { _planeOrigin    :: Point
   , _planeDirection :: Direction
   , _planeMaterial  :: Material
-  }
-
--- |A smart constructor upcasting the 'Plane' type to 'Shape'.
-plane :: Point -> Direction -> Material -> Shape
-plane = Shape .:. Plane
+  } deriving (Show)
 
 instance HasMaterial Plane where
   {-# INLINE material #-}
@@ -98,3 +77,27 @@ instance Primitive Plane where
       k = - dot (ro - orig) dir / dot rd dir
 
   normalAt _ (Plane _ dir _) = normalize dir
+
+-- |Existential qualifier for the 'Primitive' class.
+-- Used to achieve dynamic dispatch known from OOP languages.
+-- Makes representing the scene as a list of 'Primitive' class objects possible.
+data Shape = forall a. (Show a, Primitive a) => Shape a
+
+instance Show Shape where
+  show (Shape a) = show a
+
+instance Primitive Shape where
+  {-# INLINE distanceTo #-}
+  {-# INLINE normalAt #-}
+  {-# INLINE hit #-}
+  distanceTo ray (Shape a) = distanceTo ray a
+  normalAt p (Shape a) = normalAt p a
+  hit ray f (Shape a) = hit ray f a
+
+-- |A smart constructor upcasting the 'Sphere' type to 'Shape'.
+sphere :: Point -> Double -> Material -> Shape
+sphere = Shape .:. Sphere
+
+-- |A smart constructor upcasting the 'Plane' type to 'Shape'.
+plane :: Point -> Direction -> Material -> Shape
+plane = Shape .:. Plane

@@ -28,7 +28,7 @@ clamp = liftI2 min (V3 1 1 1) . liftI2 max zero
 render :: Env -> Scene -> [Color]
 render env scene = parallelize (trace scene . Ray pos) $ makeRays env
   where
-    pos = _eye . _camera $ env
+    pos = _eye $ _camera env
 
 trace :: Scene -> Ray -> Color
 trace = traceRec 32

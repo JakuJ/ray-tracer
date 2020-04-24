@@ -1,7 +1,10 @@
 resolver: lts-14.27
-allow-newer: true
+allow-newer: false
 rebuild-ghc-options: true
 arch: x86_64
 color: always
 build:
     keep-going: true
+
+extra-deps:
+- megaparsec-8.0.0

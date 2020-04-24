@@ -19,15 +19,8 @@ import           Linear            hiding (point)
 class LightSource a where
     applyLight :: Primitive p => [p] -> Point -> Direction -> Direction -> Phong -> a -> Color
 
-data Light = forall a. LightSource a => Light a
-
-instance LightSource Light where
-  applyLight a b c d e (Light l) = applyLight a b c d e l
-
 newtype AmbientLight = AmbientLight Color
-
-ambientLight :: Color -> Light
-ambientLight = Light . AmbientLight
+  deriving Show
 
 instance LightSource AmbientLight where
   applyLight _ _ _ _ (Phong color ambient _ _ _) (AmbientLight lightColor) = ambient *^ color * lightColor
@@ -47,9 +40,7 @@ calcPhong toCamera toLight normal (Phong color _ diffuse specular shininess) = i
       highlight = specular * cos_b ** shininess
 
 data PointLight = PointLight Point Color
-
-pointLight :: Point -> Color -> Light
-pointLight = Light .: PointLight
+  deriving Show
 
 instance LightSource PointLight where
   applyLight scene point normal toCamera phong (PointLight lightPos lightColor)
@@ -68,9 +59,7 @@ instance LightSource PointLight where
         light = if ph > 0 then intensity *^ lightColor * ph else zero
 
 data DirLight = DirLight Direction Color
-
-dirLight :: Direction -> Color -> Light
-dirLight = Light .: DirLight
+  deriving Show
 
 instance LightSource DirLight where
   applyLight scene point normal toCamera phong (DirLight lightDir lightColor) = case obscured of
@@ -80,3 +69,21 @@ instance LightSource DirLight where
       toLight = negate lightDir
       obscured = tryHit (offset $ Ray point toLight) scene
       ph = calcPhong toCamera toLight normal phong
+
+-- Existential qualification
+data Light = forall a. (Show a, LightSource a) => Light a
+
+instance Show Light where
+  show (Light l) = show l
+
+instance LightSource Light where
+  applyLight a b c d e (Light l) = applyLight a b c d e l
+
+ambientLight :: Color -> Light
+ambientLight = Light . AmbientLight
+
+pointLight :: Point -> Color -> Light
+pointLight = Light .: PointLight
+
+dirLight :: Direction -> Color -> Light
+dirLight = Light .: DirLight

@@ -1,0 +1,26 @@
+https://en.wikipedia.org/wiki/Parsing_expression_grammar
+
+Scene <- Line* EOF
+  Line <- EOL? Expression
+    Expression <- Definition | Object | Comment
+      Definition <- Identifier "=" Assignable
+        Identifier <- r"[a-z_]+"
+        Assignable <- Vector3 | Material | Float
+          Vector3 <- "(" Float "," Float "," Float ")"
+            Float <- r"[0-9\.]+"
+          Material <- Identifier MaterialType Vector3
+            MaterialType <- Diffuse | Reflective | Refractive
+              Diffuse <- "Diffuse"
+              Reflective <- "Reflective" Float
+              Refractive <- "Refractive" Float Float
+      Object <- Shape | Light
+        Shape <- Plane | Sphere
+          Plane <- "Plane" Vector3U Vector3U MaterialU
+          Sphere <- "Plane" Vector3U FloatU MaterialU
+            Vector3U <- Vector3 | Identifier
+            MaterialU <- Material | Identifier
+        Light <- AmbientL | PointL | DirectionL
+          AmbientL <- "AmbientLight" Vector3U
+          PointL <- "PointLight" Vector3U Vector3U
+          DirectionL <- "DirectionalLight" Vector3U Vector3U
+      Comment <- "#" r".*"

@@ -19,6 +19,7 @@ data MaterialType
   -- ^Reflective material characterized by a reflection index (0 - not reflective, 1 - perfect mirror).
   | Refraction {-# UNPACK #-} !Double {-# UNPACK #-} !Double
   -- ^Transparent material characterized by a refraction index and transmittance.
+    deriving (Show)
 
 data Phong = Phong {
   _color     :: Color,
@@ -34,6 +35,9 @@ data Material = Material {
   -- The alpha channel is used when blending if the material type is 'Refraction'.
   _materialType  :: MaterialType
 }
+
+instance Show Material where
+  show (Material _ mt) = "Material with: " ++ show mt
 
 -- Material constructors
 

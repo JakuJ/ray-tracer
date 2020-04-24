@@ -1,9 +1,13 @@
 module Main (main) where
 
 import           Env               (defaultEnv)
-import           Object.Scene      (defaultScene)
 import           Output            (saveImage)
+import           Parser            (parseScene)
 import           Tracing.Raytracer (render)
 
 main :: IO ()
-main = saveImage defaultEnv "obraz.bmp" $ render defaultEnv defaultScene
+main = do
+    scene <- parseScene "scene.txt"
+    case scene of
+        Just s  -> saveImage defaultEnv "obraz.bmp" $ render defaultEnv s
+        Nothing -> putStrLn "Parsing failure"

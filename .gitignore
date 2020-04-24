@@ -5,7 +5,6 @@ Raytracer.cabal
 *~
 # IO
 *.bmp
-scene.txt
 # Profiling
 .hpc/
 *.eventlog
