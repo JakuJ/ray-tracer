@@ -1,0 +1,36 @@
+# Colours
+black = (0.1, 0.1, 0.1)
+white = (1, 1, 1)
+green = (0, 1, 0)
+red = (1, 0, 0)
+blue = (0, 0, 1)
+
+# Plane positions
+back = (0, 0, 10)
+left = (-10, 0, 0)
+right = (10, 0, 0)
+up = (0, 10, 0)
+down = (0, -10, 0)
+
+# Planes
+Plane back (0, 0, -1) Diffuse black
+Plane left (1, 0, 0) Reflective 0.5 red
+Plane right (-1, 0, 0) Reflective 0.5 blue
+Plane up (0, -1, 0) Reflective 0.5 green
+Plane down (0, 1, 0) Reflective 0.5 white
+
+# Sphere colours
+Sphere (0, 0, 5) 2 Diffuse white
+Sphere (0, 7, 5) 2 Diffuse green
+Sphere (5, -5, 5) 2 Diffuse blue
+Sphere (-5, -5, 5) 2 Diffuse red
+
+# Lights
+Ambient (1, 1, 1)
+
+# Camera position
+eye = (0, 0, -20)
+at = (0, 0, 0)
+up = (0, 1, 0)
+
+Camera eye at up

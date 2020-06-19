@@ -22,8 +22,6 @@ refract index i n = if k < 0 then Nothing else Just $ (eta *^ i) ^+^ (n' ^* (eta
     (cosi', eta, n') = if cosi < 0 then (-cosi, 1 / index, n) else (cosi, index, negate n)
     k = 1 - eta * eta * (1 - cosi' * cosi')
 
-clamp :: Color -> Color
-clamp = liftI2 min (V3 1 1 1) . liftI2 max zero
 
 render :: Env -> Scene -> [Color]
 render env scene = parallelize (trace scene . Ray pos) $ makeRays env
@@ -42,22 +40,17 @@ traceRec = traceRec' clamp 1
       | intensity < 0.01 = cont zero
       | otherwise = case tryHit ray objs of
         Nothing -> cont zero
-        Just ((point, normal), Material colorAt mtype) -> let
-          phong = colorAt point
+        Just ((point, normal), Material phong mtype) -> let
           direct = sum $ map (applyLight objs point normal (negate rd) phong) lights
           in case mtype of
             Diffuse -> cont direct
-            Reflection reflectivity -> if reflectivity == 0
-              then cont direct
-              else let
-                cont' next = cont $ lerp reflectivity next direct
+            Reflection reflectivity -> let
+                cont' next = cont $ lerp reflectivity (next * direct) direct
                 ray' = offset $ Ray point $ reflect rd normal
                 in traceRec' cont' (intensity * reflectivity) (n - 1) scene ray'
-            Refraction ix transmittance -> if transmittance == 1
-              then cont zero
-              else case refract ix rd normal of
+            Refraction ix transmittance -> case refract ix rd normal of
                 Nothing -> cont direct
                 Just dir -> let
-                  cont' next = cont $ lerp transmittance next direct
+                  cont' next = cont $ lerp transmittance (next * direct) direct
                   ray' = offset $ Ray point dir
                   in traceRec' cont' (intensity * transmittance) (n - 1) scene ray'

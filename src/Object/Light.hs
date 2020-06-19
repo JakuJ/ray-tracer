@@ -23,21 +23,20 @@ newtype AmbientLight = AmbientLight Color
   deriving Show
 
 instance LightSource AmbientLight where
-  applyLight _ _ _ _ (Phong color ambient _ _ _) (AmbientLight lightColor) = ambient *^ color * lightColor
+  applyLight _ _ _ _ (Phong color _) (AmbientLight lightColor) = color * lightColor
 
 calcPhong :: Direction -- to eye
           -> Direction -- to light
           -> Direction -- normal
           -> Phong -- material info
           -> Color
-calcPhong toCamera toLight normal (Phong color _ diffuse specular shininess) = if cos_a > 0
+calcPhong toCamera toLight normal (Phong color shininess) = if lambertian > 0
   then color ^* (lambertian + highlight)
   else zero
     where
-      cos_a = dot normal toLight
-      lambertian = diffuse * cos_a
+      lambertian = dot normal toLight
       cos_b = dot toCamera (reflect (negate toLight) normal)
-      highlight = specular * cos_b ** shininess
+      highlight = cos_b ** shininess
 
 data PointLight = PointLight Point Color
   deriving Show

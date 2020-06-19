@@ -1,26 +1,24 @@
 {-# OPTIONS_GHC -Wno-partial-type-signatures #-}
 {-# OPTIONS_GHC -Wno-unused-do-bind #-}
+{-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE NamedWildCards        #-}
 {-# LANGUAGE PartialTypeSignatures #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Parser (
-    parseScene
-) where
+module Parser (parseScene) where
 
-import           Common                   ((.:))
-import           Object.Light             (Light, ambientLight, dirLight,
-                                           pointLight)
-import           Object.Material          (Material (..), MaterialType (..),
-                                           plain)
-import           Object.Primitive         (Shape, plane, sphere)
-import           Object.Scene             (Scene (..))
+import           Common
+import           Env                      
+import           Object.Light             
+import           Object.Material          
+import           Object.Primitive         
+import           Object.Scene             
 
 import           Control.Lens             hiding (assign, lens)
 import           Control.Monad.State.Lazy
 import qualified Data.Map                 as M
 import           Data.Void                (Void)
-import           Linear                   (V3 (..))
+import           Linear
 import           Text.Megaparsec          hiding (State)
 import           Text.Megaparsec.Char
 
@@ -32,10 +30,14 @@ data Memory = Memory
     , _numbers   :: M.Map String Double
     , _shapes    :: [Shape]
     , _lights    :: [Light]
-    } deriving Show
+    , _env       :: Maybe Env
+    }
 makeLenses ''Memory
 
 type Parser = ParsecT Void String (State Memory)
+
+clampf :: (Ord a, Num a) => a -> a
+clampf = min 1 . max 0
 
 -- Primitives
 
@@ -69,7 +71,7 @@ parseVector = do
     return $ V3 a b c
 
 parseIdentifier :: Parser String
-parseIdentifier = some (char '_' <|> lowerChar)
+parseIdentifier = (:) <$> lowerChar <*> (many (char '_' <|> lowerChar))
 
 -- Materials
 
@@ -78,14 +80,14 @@ parseDiffuse = string "Diffuse" >> return Diffuse
 
 parseReflective = do
     string "Reflective" >> space
-    v <- parseOrGetNumber
+    v <- clampf <$> parseOrGetNumber
     return $ Reflection v
 
 parseRefractive = do
     string "Refractive" >> space
     v1 <- parseOrGetNumber
     space
-    v2 <- parseOrGetNumber
+    v2 <- clampf <$> parseOrGetNumber
     return $ Refraction v1 v2
 
 parseMatType :: Parser MaterialType
@@ -95,17 +97,16 @@ parseMaterial :: Parser Material
 parseMaterial = do
     t <- parseMatType
     space
-    color <- parseOrGetVector
-    return $ Material (const $ plain color) t
+    color <- clamp <$> parseOrGetVector
+    shine <- max 0 <$> (try (space >> parseOrGetNumber) <|> pure 0)
+    return $ Material (Phong color shine) t
 
 -- State getters
 
 readDict :: _lens -> String -> Parser _
-readDict lens key = do
-    val <- lens `uses` M.lookup key
-    case val of
-        Nothing -> fail $ "Variable not set: \"" ++ key ++ "\""
-        Just x  -> return x
+readDict lens key = lens `uses` M.lookup key >>= \case
+    Nothing -> fail $ "Variable not set: " ++ key
+    Just x  -> return x
 
 getNumber :: String -> Parser Double
 getNumber = readDict numbers
@@ -153,7 +154,7 @@ parsePlane = do
     string "Plane" >> space
     pos <- parseOrGetVector
     space
-    dir <- parseOrGetVector
+    dir <- normalize <$> parseOrGetVector
     space
     plane pos dir <$> parseOrGetMaterial
 
@@ -177,34 +178,44 @@ parseAmbient = do
 parseDirectional :: Parser Light
 parseDirectional = do
     string "Directional" >> space
-    dir <- parseOrGetVector
+    dir <- normalize <$> parseOrGetVector
     space
-    dirLight dir <$> parseOrGetVector
+    (dirLight dir . clamp) <$> parseOrGetVector
 
 parsePoint :: Parser Light
 parsePoint = do
     string "Point" >> space
     pos <- parseOrGetVector
     space
-    pointLight pos <$> parseOrGetVector
+    (pointLight pos . clamp) <$> parseOrGetVector
 
 parseLight :: Parser ()
 parseLight = (parseAmbient <|> parseDirectional <|> parsePoint) >>= append lights
 
 -- High level
+parseEnv :: Parser ()
+parseEnv = do
+    string "Camera" >> space
+    t_eye <- parseOrGetVector
+    space
+    t_lookAt <- parseOrGetVector
+    space
+    t_up <- normalize <$> parseOrGetVector
+    let e = Env 1920 1080 $ Camera t_eye t_lookAt t_up 60 in lift $ env .= Just e
+
 parseComment, parseEmpty, parseExpression, parseFile :: Parser ()
 parseComment = char '#' >> takeWhileP Nothing (/= '\n') >> pure ()
 parseEmpty = pure ()
-parseExpression = parseComment <|> parseAssignment <|> parseShape <|> parseLight <|> parseEmpty
+parseExpression = parseComment <|> parseAssignment <|> parseShape <|> parseLight <|> parseEnv <|> parseEmpty
 parseFile = parseExpression >> many (eol >> parseExpression) >> eof >> pure ()
 
 initialState :: Memory
-initialState = Memory M.empty M.empty M.empty [] []
+initialState = Memory M.empty M.empty M.empty [] [] Nothing
 
-parseScene :: FilePath -> IO (Maybe Scene)
+parseScene :: FilePath -> IO (Maybe (Scene, Maybe Env))
 parseScene file = do
     text <- readFile file
-    let (result, (Memory _ _ _ sh li)) = runState (runParserT parseFile "scene.txt" text) initialState
+    let (result, (Memory _ _ _ sh li t_env)) = runState (runParserT parseFile "scene.txt" text) initialState
     case result of
         Left err -> putStrLn (errorBundlePretty err) >> return Nothing
-        Right _  -> return $ Just $ Scene sh li
+        Right _  -> return $ Just (Scene sh li, t_env)

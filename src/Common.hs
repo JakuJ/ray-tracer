@@ -1,6 +1,6 @@
 module Common where
 
-import           Linear (V3)
+import           Linear
 
 type Point = V3 Double
 type Direction = V3 Double
@@ -14,3 +14,7 @@ infixr 9 .:
 infixr 9 .:.
 (.:.) :: (d -> e) -> (a -> b -> c -> d) -> (a -> b -> c -> e)
 (.:.) = (.) . (.:)
+
+-- |Clamp all of the vector's components into the range 0 - 1
+clamp :: Color -> Color
+clamp = liftI2 min (V3 1 1 1) . liftI2 max zero

@@ -26,7 +26,7 @@ data Env = Env {
 }
 
 resEnv :: Int -> Int -> Env
-resEnv w h = Env w h $ Camera (V3 6 6 0) (V3 0 0 0) (V3 0 1 0) 60
+resEnv w h = Env w h $ Camera (V3 0 0 (-20)) (V3 0 0 0) (V3 0 1 0) 60
 
 hd, fullHD, res2k, res4k :: Env
 hd = resEnv 720 480

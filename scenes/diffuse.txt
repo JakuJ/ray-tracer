@@ -1,0 +1,33 @@
+# Positions
+origin = (0, 0, 0)
+
+# Colours
+glossy_black = (0.3, 0.3, 0.3)
+shiny_black = (1, 1, 1)
+
+yellow = (0.992, 0.992, 0.596)
+purple = (0.698, 0.617, 0.851)
+green = (0.467, 0.867, 0.467)
+red = (0.996, 0.42, 0.392)
+blue = (0.467, 0.62, 0.796)
+
+# Shapes
+Plane origin (0, 1, 0) Reflective 0.7 glossy_black
+Plane (10, 0, -10) (-1, 0, 1) Reflective 1 shiny_black
+Plane (-10, 0, -10) (1, 0, 1) Reflective 1 shiny_black
+
+Sphere (0, 2, 0) 2 Diffuse yellow
+Sphere (4, 1, 0) 1 Diffuse purple
+Sphere (-4, 1, -3) 1 Diffuse red
+Sphere (2.5, 1.5, -2.5) 1.5 Diffuse green
+
+# Lights
+Ambient (0.4, 0.4, 0.4)
+Directional (0.1, -1, -0.2) (0.3, 0.3, 0.3)
+
+# Camera position
+eye = (0.1, 8, 8)
+at = (0, 4, 0)
+up = (0, 1, 0)
+
+Camera eye at up
