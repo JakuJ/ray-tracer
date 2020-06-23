@@ -23,6 +23,7 @@ refract index i n = if k < 0 then Nothing else Just $ (eta *^ i) ^+^ (n' ^* (eta
     k = 1 - eta * eta * (1 - cosi' * cosi')
 
 
+-- |For a given 'Env'ironment and a 'Scene', return a list of pixels of the output image in row-major order.
 render :: Env -> Scene -> [Color]
 render env scene = parallelize (trace scene . Ray pos) $ makeRays env
   where

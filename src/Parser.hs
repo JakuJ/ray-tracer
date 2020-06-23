@@ -8,11 +8,11 @@
 module Parser (parseScene) where
 
 import           Common
-import           Env                      
-import           Object.Light             
-import           Object.Material          
-import           Object.Primitive         
-import           Object.Scene             
+import           Env
+import           Object.Light
+import           Object.Material
+import           Object.Primitive
+import           Object.Scene
 
 import           Control.Lens             hiding (assign, lens)
 import           Control.Monad.State.Lazy
@@ -212,6 +212,7 @@ parseFile = parseExpression >> many (eol >> parseExpression) >> eof >> pure ()
 initialState :: Memory
 initialState = Memory M.empty M.empty M.empty [] [] Nothing
 
+-- |Processes the scene description file under the provided filepath.
 parseScene :: FilePath -> IO (Maybe (Scene, Maybe Env))
 parseScene file = do
     text <- readFile file

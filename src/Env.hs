@@ -10,7 +10,7 @@ import           Common (Direction, Point)
 
 import           Linear (V3 (..))
 
--- |Represents the camera used for the rendering
+-- |Represents the camera used for rendering.
 data Camera = Camera {
     _eye    :: Point, -- ^Camera position in world space
     _lookAt :: Point, -- ^Camera look-at point
@@ -18,7 +18,7 @@ data Camera = Camera {
     _fov    :: {-# UNPACK #-} !Double -- ^Field of view in degrees
 }
 
--- |Holds environmental constants
+-- |Holds environmental constants.
 data Env = Env {
     _imageWidth  :: {-# UNPACK #-} !Int, -- ^Image width in pixels
     _imageHeight :: {-# UNPACK #-} !Int, -- ^Image height in pixels
@@ -34,6 +34,6 @@ fullHD = resEnv 1920 1080
 res2k = resEnv 2560 1600
 res4k = resEnv 3840 2160
 
--- |Default testing environment
+-- |Default environment, used in case the scene descripton file doesn't specify one.
 defaultEnv :: Env
-defaultEnv = fullHD
+defaultEnv = res2k

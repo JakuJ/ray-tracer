@@ -22,8 +22,8 @@ Sphere (-4, 1, -3) 1 Diffuse red
 Sphere (2.5, 1.5, -2.5) 1.5 Diffuse green
 
 # Lights
-Ambient (0.4, 0.4, 0.4)
-Directional (0.1, -1, -0.2) (0.3, 0.3, 0.3)
+Ambient (0.1, 0.1, 0.1)
+Directional (0.1, -1, -0.2) (0.7, 0.7, 0.7)
 
 # Camera position
 eye = (0.1, 8, 8)

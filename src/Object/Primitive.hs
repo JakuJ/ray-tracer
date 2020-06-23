@@ -17,9 +17,8 @@ import           Tracing.Ray     (Ray (..))
 
 import           Linear
 
--- |Represents types that have a 'Material' associated with them.
 class HasMaterial a where
-  material :: a -> Material -- ^Extract the associated 'Material'.
+  material :: a -> Material
 
 -- |Represents types that can be intersected by rays
 class Primitive a where
@@ -40,7 +39,7 @@ data Sphere = Sphere
   { _spherePosition :: Point
   , _sphereRadius   :: {-# UNPACK #-} !Double
   , _sphereMaterial :: Material
-  } deriving (Show)
+  }
 
 instance HasMaterial Sphere where
   {-# INLINE material #-}
@@ -64,7 +63,7 @@ data Plane = Plane
   { _planeOrigin    :: Point
   , _planeDirection :: Direction
   , _planeMaterial  :: Material
-  } deriving (Show)
+  }
 
 instance HasMaterial Plane where
   {-# INLINE material #-}
@@ -80,11 +79,9 @@ instance Primitive Plane where
 
 -- |Existential qualifier for the 'Primitive' class.
 -- Used to achieve dynamic dispatch known from OOP languages.
--- Makes representing the scene as a list of 'Primitive' class objects possible.
-data Shape = forall a. (Show a, Primitive a) => Shape a
-
-instance Show Shape where
-  show (Shape a) = show a
+-- Makes representing the scene as a list of anything that implements the 'Primitive' class possible,
+-- regardless of the actual data type underneath.
+data Shape = forall a. Primitive a => Shape a
 
 instance Primitive Shape where
   {-# INLINE distanceTo #-}
@@ -94,10 +91,12 @@ instance Primitive Shape where
   normalAt p (Shape a) = normalAt p a
   hit ray f (Shape a) = hit ray f a
 
--- |A smart constructor upcasting the 'Sphere' type to 'Shape'.
+-- |A smart constructor for creating spheres.
+-- Takes in the position, radius and material information associated with the sphere.
 sphere :: Point -> Double -> Material -> Shape
 sphere = Shape .:. Sphere
 
 -- |A smart constructor upcasting the 'Plane' type to 'Shape'.
+-- Takes in the origin point, "up" facing direction of the plane and material information.
 plane :: Point -> Direction -> Material -> Shape
 plane = Shape .:. Plane

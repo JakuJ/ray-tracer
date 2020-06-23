@@ -2,7 +2,9 @@
 module Object.Light (
   LightSource,
   applyLight,
+  -- * Existential qualifiers
   Light,
+  -- ** Smart constructors
   ambientLight,
   pointLight,
   dirLight
@@ -16,11 +18,12 @@ import           Tracing.Ray
 
 import           Linear            hiding (point)
 
+-- |An abstraction over types which can represent light sources.
 class LightSource a where
-    applyLight :: Primitive p => [p] -> Point -> Direction -> Direction -> Phong -> a -> Color
+  applyLight :: Primitive p => [p] -> Point -> Direction -> Direction -> Phong -> a -> Color
+  -- ^Calculates the resulting RGB colour based on the scene, the point in space and material properties.
 
 newtype AmbientLight = AmbientLight Color
-  deriving Show
 
 instance LightSource AmbientLight where
   applyLight _ _ _ _ (Phong color _) (AmbientLight lightColor) = color * lightColor
@@ -36,10 +39,9 @@ calcPhong toCamera toLight normal (Phong color shininess) = if lambertian > 0
     where
       lambertian = dot normal toLight
       cos_b = dot toCamera (reflect (negate toLight) normal)
-      highlight = cos_b ** shininess
+      highlight = if shininess == 0 then 0 else cos_b ** shininess
 
 data PointLight = PointLight Point Color
-  deriving Show
 
 instance LightSource PointLight where
   applyLight scene point normal toCamera phong (PointLight lightPos lightColor)
@@ -58,7 +60,6 @@ instance LightSource PointLight where
         light = if ph > 0 then intensity *^ lightColor * ph else zero
 
 data DirLight = DirLight Direction Color
-  deriving Show
 
 instance LightSource DirLight where
   applyLight scene point normal toCamera phong (DirLight lightDir lightColor) = case obscured of
@@ -69,20 +70,26 @@ instance LightSource DirLight where
       obscured = tryHit (offset $ Ray point toLight) scene
       ph = calcPhong toCamera toLight normal phong
 
--- Existential qualification
-data Light = forall a. (Show a, LightSource a) => Light a
-
-instance Show Light where
-  show (Light l) = show l
+-- |Existential qualifier for the 'LightSource' class.
+-- Used to achieve dynamic dispatch known from OOP languages.
+-- Makes is possible to use a list of anything that implements the 'LightSource' class possible,
+-- regardless of the actual data type underneath.
+data Light = forall a. LightSource a => Light a
 
 instance LightSource Light where
   applyLight a b c d e (Light l) = applyLight a b c d e l
 
+-- |A smart constructor for ambient lights.
+-- Takes in the colour of the light source.
 ambientLight :: Color -> Light
 ambientLight = Light . AmbientLight
 
+-- |A smart constructor for point lights.
+-- Takes in the position and the colour of the light source.
 pointLight :: Point -> Color -> Light
 pointLight = Light .: PointLight
 
+-- |A smart constructor for directional lights.
+-- Takes in the direction and the colour of the light source.
 dirLight :: Direction -> Color -> Light
 dirLight = Light .: DirLight
