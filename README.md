@@ -2,6 +2,8 @@
 
 A relatively simple ray tracer utilising Haskell's parallelization strategies to render simple scenes composed of planes and spheres, and use all CPU cores while doing so.
 
+![Example scene](./images/chessboard.png)
+
 # Building
 
 This is a stack project. Use the provided [Makefile](./Makefile) or run
@@ -17,7 +19,7 @@ The program comes with it's own scene description language. To render an image, 
 From the top level directory, you can execute the program like this:
 
 ```shell
-stack exec -- Raytracer <path scene file>
+stack exec -- Raytracer <scene file path>
 ```
 
 For development purposes, the included [Makefile](./Makefile) defines some rules that build and run the project. Some of these rules require other programs to be in your PATH:
@@ -25,8 +27,8 @@ For development purposes, the included [Makefile](./Makefile) defines some rules
 - make scenes – renders all examples in the [scenes](./scenes) folder
 - make bench – renders a scene and uses the `time` utility to show how much CPU is used (requires `zsh`)
 - make threadscope – renders a scene and show how well the rendering process was parallelized (requires `threadscope`)
-- make memory – renders a scene and shows the program's memory usage as a function of time (requires hp2pretty)
-- make profiteur – renders a scene and shows profiling information<sup>\*</sup> in a nice webpage format (requires profiteur)
+- make memory – renders a scene and shows the program's memory usage as a function of time (requires `hp2pretty`)
+- make profiteur – renders a scene and shows profiling information<sup>\*</sup> in a nice webpage format (requires `profiteur`)
 - make docs – builds the Haddock documentation
 - make clean - clears the workspace of junk
 
