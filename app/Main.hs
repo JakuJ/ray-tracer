@@ -1,23 +1,21 @@
 module Main (main) where
 
-import           Env               (defaultEnv)
-import           Data.Maybe        (fromMaybe)
-import           System.Directory  (listDirectory)
-import           Output            (saveImage)
-import           Parser            (parseScene)
-import           Tracing.Raytracer (render)
+import           Env                (defaultEnv)
+import           Output             (saveImage)
+import           Parser             (parseScene)
+import           Tracing.Raytracer  (render)
 
-listScenes :: IO [FilePath]
-listScenes = listDirectory "scenes"
+import           Data.Maybe         (fromMaybe)
+import           System.Environment (getArgs)
+import           System.FilePath
 
 renderScene :: FilePath -> IO ()
 renderScene filename = do
-    tuple <- parseScene $ "scenes/" ++ filename
-    let name = takeWhile (/= '.') filename
+    tuple <- parseScene filename
     case tuple of
-        Just (s, e)  -> let env = (fromMaybe defaultEnv e) in 
-            saveImage env ("rendered/" ++ name ++ ".bmp") $ render env s
+        Just (s, e)  -> let env = fromMaybe defaultEnv e in
+            saveImage env (dropExtension filename <.> "bmp") $ render env s
         Nothing -> putStrLn $ "Parsing failure in " ++ filename
 
 main :: IO ()
-main = mapM_ renderScene =<< listScenes
+main = mapM_ renderScene =<< getArgs

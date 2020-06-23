@@ -1,5 +1,5 @@
 name: Raytracer
-version: 0.1.0.0
+version: 1.0.0.0
 github: 'JakuJ/ray-tracer'
 license: BSD3
 author: 'Jakub Janaszkiewicz'
@@ -8,11 +8,6 @@ copyright: '2020 Jakub Janaszkiewicz'
 
 extra-source-files:
   - README.md
-  - scene_grammar.txt
-
-# Metadata used when publishing your package
-# synopsis:            Short description of your package
-# category:            Web
 
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
@@ -30,7 +25,7 @@ dependencies:
   - containers
   - lens
   - megaparsec >= 8.0
-  - directory
+  - filepath
 
 library:
   source-dirs: src
