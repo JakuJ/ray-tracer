@@ -39,4 +39,4 @@ docs:
 
 # Clear the workspace of junk files
 clean:
-	rm -f *.aux *.hp *.ps *.eventlog *.bmp *.prof *.svg scenes/*.bmp
+	rm -f *.aux *.hp *.ps *.eventlog *.bmp *.prof *.prof.html *.svg scenes/*.bmp
