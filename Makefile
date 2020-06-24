@@ -6,7 +6,7 @@ TESTFILE=scenes/diffuse.txt
 # Render all examples in the scenes folder
 scenes:
 	stack build
-	for scene in scenes/*; do stack exec -- $(EXECUTABLE) "$$scene"; done
+	for scene in scenes/*.txt; do stack exec -- $(EXECUTABLE) "$$scene"; done
 
 # Use zsh 'time' utility to see how much CPU we used
 bench:
